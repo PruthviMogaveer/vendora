@@ -317,7 +317,10 @@ const ProductForm = () => {
                             <FormControl>
                               <Checkbox
                                 checked={formData.featured}
-                                onCheckedChange={(checked) => setFormData({ ...formData, featured: checked || false })}
+                                onCheckedChange={(checked) => {
+                                  // Ensure we're setting a boolean value
+                                  setFormData({ ...formData, featured: checked === true });
+                                }}
                               />
                             </FormControl>
                             <FormLabel>Featured</FormLabel>
@@ -335,7 +338,10 @@ const ProductForm = () => {
                             <FormControl>
                               <Checkbox
                                 checked={formData.in_stock}
-                                onCheckedChange={(checked) => setFormData({ ...formData, in_stock: checked || true })}
+                                onCheckedChange={(checked) => {
+                                  // Ensure we're setting a boolean value
+                                  setFormData({ ...formData, in_stock: checked === true });
+                                }}
                               />
                             </FormControl>
                             <FormLabel>In Stock</FormLabel>

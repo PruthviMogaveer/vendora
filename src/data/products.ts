@@ -7,7 +7,7 @@ export const products: Product[] = [
     name: 'Minimalist Ceramic Vase',
     description: 'Hand-crafted ceramic vase with a smooth matte finish. Perfect for minimal home decor, this piece adds elegance to any space.',
     price: 89.99,
-    oldPrice: 119.99,
+    old_price: 119.99,
     images: [
       'https://images.unsplash.com/photo-1612196808214-b8e1d6145a8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1612196808341-7e338291b1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -16,7 +16,7 @@ export const products: Product[] = [
     category: 'home',
     badge: 'New',
     featured: true,
-    inStock: true,
+    in_stock: true,
     variants: [
       {
         id: 'color',
@@ -37,7 +37,7 @@ export const products: Product[] = [
     ],
     category: 'accessories',
     featured: true,
-    inStock: true,
+    in_stock: true,
     variants: [
       {
         id: 'color',
@@ -51,7 +51,7 @@ export const products: Product[] = [
     name: 'Wireless Premium Headphones',
     description: 'High-fidelity sound with active noise cancellation. Features premium materials and all-day battery life for uninterrupted listening.',
     price: 249.99,
-    oldPrice: 299.99,
+    old_price: 299.99,
     images: [
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -60,7 +60,7 @@ export const products: Product[] = [
     category: 'electronics',
     badge: 'Sale',
     featured: true,
-    inStock: true
+    in_stock: true
   },
   {
     id: '4',
@@ -74,7 +74,7 @@ export const products: Product[] = [
     ],
     category: 'home',
     featured: true,
-    inStock: true
+    in_stock: true
   },
   {
     id: '5',
@@ -87,7 +87,7 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1539533113208-f6df8cc8b545?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
     ],
     category: 'clothing',
-    inStock: true,
+    in_stock: true,
     variants: [
       {
         id: 'size',
@@ -106,7 +106,7 @@ export const products: Product[] = [
     name: 'Premium Coffee Maker',
     description: 'Precisely engineered coffee maker with temperature control and built-in grinder. Creates the perfect cup with minimal effort.',
     price: 159.99,
-    oldPrice: 189.99,
+    old_price: 189.99,
     images: [
       'https://images.unsplash.com/photo-1517914309068-f8892fd4fbf9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1517914309068-f8892fd4fbfa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -114,7 +114,7 @@ export const products: Product[] = [
     ],
     category: 'kitchen',
     badge: 'Best Seller',
-    inStock: true
+    in_stock: true
   },
   {
     id: '7',
@@ -128,7 +128,7 @@ export const products: Product[] = [
     ],
     category: 'accessories',
     featured: true,
-    inStock: true,
+    in_stock: true,
     variants: [
       {
         id: 'color',
@@ -148,7 +148,7 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1578983427937-26078ee3d9d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
     ],
     category: 'home',
-    inStock: true
+    in_stock: true
   }
 ];
 
