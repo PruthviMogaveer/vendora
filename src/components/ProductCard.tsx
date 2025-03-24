@@ -60,9 +60,9 @@ export const ProductCard = ({ product, featured = false }: ProductCardProps) => 
           <p className="text-sm font-medium">
             ${product.price.toFixed(2)}
           </p>
-          {product.oldPrice && (
+          {product.old_price && (
             <p className="text-xs text-muted-foreground line-through">
-              ${product.oldPrice.toFixed(2)}
+              ${product.old_price.toFixed(2)}
             </p>
           )}
         </div>

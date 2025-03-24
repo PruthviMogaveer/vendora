@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Menu, X, Search } from 'lucide-react';
+import { ShoppingBag, Menu, X } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { cn } from '@/lib/utils';
+import { SearchBar } from './SearchBar';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -50,9 +51,7 @@ export const Navbar = () => {
           
           {/* Right Actions */}
           <div className="flex items-center space-x-4 animate-fade-in">
-            <button className="p-2 hover:bg-secondary rounded-full transition-colors">
-              <Search size={20} className="text-primary" />
-            </button>
+            <SearchBar />
             <Link to="/cart" className="p-2 hover:bg-secondary rounded-full transition-colors relative">
               <ShoppingBag size={20} className="text-primary" />
               {itemCount > 0 && (
@@ -107,6 +106,13 @@ export const Navbar = () => {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Contact
+              </Link>
+              <Link 
+                to="/login" 
+                className="text-lg text-primary hover:text-primary/80 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Login
               </Link>
             </nav>
           </div>
