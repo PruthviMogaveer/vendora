@@ -1,13 +1,18 @@
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Hero } from '@/components/Hero';
 import { FeaturedProducts } from '@/components/FeaturedProducts';
 import { Footer } from '@/components/Footer';
 import { Navbar } from '@/components/Navbar';
-import { getFeaturedProducts } from '@/data/products';
+import { getFeaturedProducts } from '@/services/productService';
 
 const Index = () => {
-  const featuredProducts = getFeaturedProducts();
+  const { data: featuredProducts = [], isLoading } = useQuery({
+    queryKey: ['featuredProducts'],
+    queryFn: getFeaturedProducts,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -18,6 +23,7 @@ const Index = () => {
         title="Featured Collection"
         description="Discover our carefully curated selection of premium products, designed with attention to every detail."
         products={featuredProducts}
+        isLoading={isLoading}
       />
       
       {/* Brand Promise Section */}

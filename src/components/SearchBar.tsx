@@ -16,12 +16,15 @@ import { Search, Loader2 } from 'lucide-react';
 
 export const SearchBar = () => {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
+  // Use react-query to fetch search results
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['search-products'],
-    queryFn: () => getProducts(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryKey: ['search-products', searchTerm],
+    queryFn: () => searchTerm.length > 1 ? getProducts(searchTerm) : [],
+    staleTime: 1000 * 60, // 1 minute
+    enabled: searchTerm.length > 1 && open,
   });
 
   React.useEffect(() => {
@@ -40,6 +43,10 @@ export const SearchBar = () => {
     navigate(`/products/${product.id}`);
   };
 
+  const handleInputChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
   return (
     <>
       <button
@@ -51,7 +58,11 @@ export const SearchBar = () => {
       </button>
       
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Search products..." />
+        <CommandInput 
+          placeholder="Search products..." 
+          value={searchTerm}
+          onValueChange={handleInputChange}
+        />
         <CommandList>
           {isLoading ? (
             <div className="flex items-center justify-center py-6">

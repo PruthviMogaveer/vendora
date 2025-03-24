@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -17,27 +17,25 @@ import {
 } from '@/components/ui/pagination';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getProducts, getProductsByCategory } from '@/services/productService';
+import { getProducts } from '@/services/productService';
 import { Product } from '@/types/product';
 
 const Products = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [isSearching, setIsSearching] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
   const { toast } = useToast();
   
-  // Fetch products from Supabase
+  // Fetch products from Supabase with backend filtering and search
   const { data: products = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['products', activeCategory],
-    queryFn: () => activeCategory 
-      ? getProductsByCategory(activeCategory) 
-      : getProducts(),
+    queryKey: ['products', activeCategory, searchQuery],
+    queryFn: () => getProducts(searchQuery, activeCategory || undefined),
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (error) {
       toast({
         title: "Error loading products",
@@ -47,31 +45,24 @@ const Products = () => {
     }
   }, [error, toast]);
 
-  // Filter products based on search query
-  const filteredProducts = searchQuery
-    ? products.filter(product => 
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : products;
-  
-  // Get categories from products
+  // Get unique categories from products for the filter
   const categories = [...new Set(products.map(product => product.category))];
   
   // Paginate products
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
 
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSearching(true);
     setCurrentPage(1);
-    // The filtering is handled in the filteredProducts calculation
-    setIsSearching(false);
+    
+    refetch().finally(() => {
+      setIsSearching(false);
+    });
   };
 
   // Reset filters
@@ -153,6 +144,7 @@ const Products = () => {
                       onClick={() => {
                         setActiveCategory(null);
                         setCurrentPage(1);
+                        refetch();
                       }}
                       className={`text-sm w-full text-left px-2 py-1.5 rounded transition-colors ${
                         activeCategory === null
@@ -169,6 +161,7 @@ const Products = () => {
                         onClick={() => {
                           setActiveCategory(category);
                           setCurrentPage(1);
+                          refetch();
                         }}
                         className={`text-sm w-full text-left px-2 py-1.5 rounded capitalize transition-colors ${
                           activeCategory === category
@@ -226,7 +219,7 @@ const Products = () => {
                   )}
                   
                   {/* Pagination */}
-                  {filteredProducts.length > itemsPerPage && (
+                  {products.length > itemsPerPage && (
                     <div className="mt-12">
                       <Pagination>
                         <PaginationContent>

@@ -10,6 +10,7 @@ interface FeaturedProductsProps {
   description?: string;
   products: Product[];
   viewAllLink?: string;
+  isLoading?: boolean;
 }
 
 export const FeaturedProducts = ({
@@ -17,6 +18,7 @@ export const FeaturedProducts = ({
   description,
   products,
   viewAllLink = '/products',
+  isLoading = false,
 }: FeaturedProductsProps) => {
   return (
     <section className="py-24">
@@ -45,17 +47,29 @@ export const FeaturedProducts = ({
           )}
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product, index) => (
-            <div 
-              key={product.id} 
-              className="animate-slide-up"
-              style={{ animationDelay: `${0.1 * (index % 4)}s` }}
-            >
-              <ProductCard product={product} featured={true} />
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array(4).fill(0).map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-square bg-gray-200 rounded-lg mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.map((product, index) => (
+              <div 
+                key={product.id} 
+                className="animate-slide-up"
+                style={{ animationDelay: `${0.1 * (index % 4)}s` }}
+              >
+                <ProductCard product={product} featured={true} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -2,11 +2,23 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Product, ProductVariant } from '@/types/product';
 
-export const getProducts = async (): Promise<Product[]> => {
+export const getProducts = async (searchQuery?: string, category?: string): Promise<Product[]> => {
   try {
-    const { data: products, error } = await supabase
+    let query = supabase
       .from('products')
       .select('*');
+    
+    // Apply filters if provided
+    if (category) {
+      query = query.eq('category', category);
+    }
+    
+    // Apply search if provided
+    if (searchQuery) {
+      query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`);
+    }
+
+    const { data: products, error } = await query;
 
     if (error) {
       throw error;
