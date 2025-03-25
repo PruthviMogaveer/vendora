@@ -11,9 +11,9 @@ import {
   PaginationPrevious 
 } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAppSelector } from '@/hooks';
 
 interface ProductGridProps {
-  products: Product[];
   currentProducts: Product[];
   isLoading: boolean;
   currentPage: number;
@@ -23,7 +23,6 @@ interface ProductGridProps {
 }
 
 export const ProductGrid = ({
-  products,
   currentProducts,
   isLoading,
   currentPage,
@@ -31,6 +30,8 @@ export const ProductGrid = ({
   totalPages,
   itemsPerPage,
 }: ProductGridProps) => {
+  const { products } = useAppSelector(state => state.products);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

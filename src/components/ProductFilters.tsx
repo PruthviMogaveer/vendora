@@ -2,24 +2,34 @@
 import React from 'react';
 import { Filter, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { useAppDispatch, useAppSelector } from '@/hooks';
+import { setActiveCategory, clearFilters, fetchProducts } from '@/store/slices/productsSlice';
 
 interface ProductFiltersProps {
-  categories: string[];
-  activeCategory: string | null;
-  setActiveCategory: (category: string | null) => void;
-  handleClearFilters: () => void;
-  refetch: () => void;
   setCurrentPage: (page: number) => void;
 }
 
 export const ProductFilters = ({
-  categories,
-  activeCategory,
-  setActiveCategory,
-  handleClearFilters,
-  refetch,
   setCurrentPage,
 }: ProductFiltersProps) => {
+  const dispatch = useAppDispatch();
+  const { categories, activeCategory, searchQuery } = useAppSelector(state => state.products);
+
+  const handleCategoryChange = (category: string | null) => {
+    dispatch(setActiveCategory(category));
+    setCurrentPage(1);
+    dispatch(fetchProducts({ 
+      searchQuery: searchQuery || undefined, 
+      category: category || undefined 
+    }));
+  };
+
+  const handleClearFilters = () => {
+    dispatch(clearFilters());
+    setCurrentPage(1);
+    dispatch(fetchProducts({}));
+  };
+
   return (
     <div className="sticky top-24 bg-white rounded-lg border border-border p-6">
       <div className="flex items-center justify-between mb-4">
@@ -33,11 +43,7 @@ export const ProductFilters = ({
         <h3 className="text-sm font-medium mb-3">Categories</h3>
         <div className="space-y-2">
           <button
-            onClick={() => {
-              setActiveCategory(null);
-              setCurrentPage(1);
-              refetch();
-            }}
+            onClick={() => handleCategoryChange(null)}
             className={`text-sm w-full text-left px-2 py-1.5 rounded transition-colors ${
               activeCategory === null
                 ? 'bg-primary text-primary-foreground'
@@ -50,11 +56,7 @@ export const ProductFilters = ({
           {categories.map(category => (
             <button
               key={category}
-              onClick={() => {
-                setActiveCategory(category);
-                setCurrentPage(1);
-                refetch();
-              }}
+              onClick={() => handleCategoryChange(category)}
               className={`text-sm w-full text-left px-2 py-1.5 rounded capitalize transition-colors ${
                 activeCategory === category
                   ? 'bg-primary text-primary-foreground'

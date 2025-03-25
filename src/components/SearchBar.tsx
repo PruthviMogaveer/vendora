@@ -19,7 +19,7 @@ export const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
-  // Use react-query to fetch search results
+  // Use react-query to fetch search results directly from backend
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['search-products', searchTerm],
     queryFn: () => searchTerm.length > 1 ? getProducts(searchTerm) : [],

@@ -1,31 +1,31 @@
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getProducts } from '@/services/productService';
 import { ProductFilters } from '@/components/ProductFilters';
 import { ProductSearch } from '@/components/ProductSearch';
 import { ProductGrid } from '@/components/ProductGrid';
+import { useAppDispatch, useAppSelector } from '@/hooks';
+import { fetchProducts } from '@/store/slices/productsSlice';
 
 const Products = () => {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
   const { toast } = useToast();
   
-  // Fetch products from Supabase with backend filtering and search
-  const { data: products = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['products', activeCategory, searchQuery],
-    queryFn: () => getProducts(searchQuery, activeCategory || undefined),
-  });
+  const dispatch = useAppDispatch();
+  const { products, loading, error } = useAppSelector(state => state.products);
 
-  React.useEffect(() => {
+  // Fetch products on component mount
+  useEffect(() => {
+    dispatch(fetchProducts({}));
+  }, [dispatch]);
+
+  useEffect(() => {
     if (error) {
       toast({
         title: "Error loading products",
@@ -34,34 +34,12 @@ const Products = () => {
       });
     }
   }, [error, toast]);
-
-  // Get unique categories from products for the filter
-  const categories = [...new Set(products.map(product => product.category))];
   
   // Paginate products
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(products.length / itemsPerPage);
-
-  // Handle search
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSearching(true);
-    setCurrentPage(1);
-    
-    refetch().finally(() => {
-      setIsSearching(false);
-    });
-  };
-
-  // Reset filters
-  const handleClearFilters = () => {
-    setActiveCategory(null);
-    setSearchQuery('');
-    setShowFilters(false);
-    setCurrentPage(1);
-  };
     
   return (
     <div className="min-h-screen flex flex-col">
@@ -81,10 +59,9 @@ const Products = () => {
           {/* Search bar */}
           <div className="max-w-md mx-auto mb-8 animate-slide-up">
             <ProductSearch 
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              handleSearch={handleSearch}
               isSearching={isSearching}
+              setIsSearching={setIsSearching}
+              setCurrentPage={setCurrentPage}
             />
           </div>
           
@@ -107,11 +84,6 @@ const Products = () => {
               } w-full md:w-64 flex-shrink-0 animate-slide-up`}
             >
               <ProductFilters 
-                categories={categories}
-                activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
-                handleClearFilters={handleClearFilters}
-                refetch={refetch}
                 setCurrentPage={setCurrentPage}
               />
             </div>
@@ -119,9 +91,8 @@ const Products = () => {
             {/* Products Grid */}
             <div className="flex-1 animate-slide-up">
               <ProductGrid 
-                products={products}
                 currentProducts={currentProducts}
-                isLoading={isLoading}
+                isLoading={loading}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 totalPages={totalPages}
