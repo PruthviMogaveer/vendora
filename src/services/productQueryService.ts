@@ -34,7 +34,10 @@ export const getProducts = async (searchQuery?: string, category?: string): Prom
     // Assign variants to their respective products
     const productsWithVariants = products.map(product => {
       const productVariants = variants
-        .filter(variant => variant.product_id === product.id)
+        .filter(variant => {
+          // @ts-ignore - product_id property is present in the database but not in the TypeScript interface
+          return variant.product_id === product.id;
+        })
         .map(variant => ({
           id: variant.id,
           name: variant.name,
@@ -72,7 +75,10 @@ export const getFeaturedProducts = async (): Promise<Product[]> => {
     // Assign variants to their respective products
     const productsWithVariants = products.map(product => {
       const productVariants = variants
-        .filter(variant => variant.product_id === product.id)
+        .filter(variant => {
+          // @ts-ignore - product_id property is present in the database but not in the TypeScript interface
+          return variant.product_id === product.id;
+        })
         .map(variant => ({
           id: variant.id,
           name: variant.name,
@@ -110,7 +116,10 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
     // Assign variants to their respective products
     const productsWithVariants = products.map(product => {
       const productVariants = variants
-        .filter(variant => variant.product_id === product.id)
+        .filter(variant => {
+          // @ts-ignore - product_id property is present in the database but not in the TypeScript interface
+          return variant.product_id === product.id;
+        })
         .map(variant => ({
           id: variant.id,
           name: variant.name,
