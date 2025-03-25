@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   name: string;
@@ -20,6 +19,7 @@ export interface ProductVariant {
   id: string;
   name: string;
   options: string[];
+  product_id?: string; // Added product_id field
 }
 
 export interface CartItem {
