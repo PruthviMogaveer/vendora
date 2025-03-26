@@ -13,6 +13,7 @@ import { NewArrivalsSection } from '@/components/home/NewArrivalsSection';
 import { PopularProductsSection } from '@/components/home/PopularProductsSection';
 import { FeatureSection } from '@/components/home/FeatureSection';
 import { NewsletterSection } from '@/components/home/NewsletterSection';
+import { HomeLayout } from '@/components/home/HomeLayout';
 
 const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -48,8 +49,7 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+    <HomeLayout>
       <Hero />
       
       {/* Categories Section */}
@@ -89,9 +89,7 @@ const Index = () => {
         onClose={closeQuickView} 
         product={selectedProduct} 
       />
-      
-      <Footer />
-    </div>
+    </HomeLayout>
   );
 };
 
