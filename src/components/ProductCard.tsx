@@ -1,23 +1,46 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, Heart, Eye } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
 import { Product } from '@/types/product';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductCardProps {
   product: Product;
   featured?: boolean;
+  onQuickView?: (product: Product) => void;
 }
 
-export const ProductCard = ({ product, featured = false }: ProductCardProps) => {
+export const ProductCard = ({ product, featured = false, onQuickView }: ProductCardProps) => {
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const { toast } = useToast();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
+    toast({
+      title: "Product added",
+      description: `${product.name} added to your cart.`,
+    });
+  };
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product);
+  };
+
+  const handleQuickView = (e: React.MouseEvent) => {
+    if (onQuickView) {
+      e.preventDefault();
+      e.stopPropagation();
+      onQuickView(product);
+    }
   };
 
   return (
@@ -42,6 +65,31 @@ export const ProductCard = ({ product, featured = false }: ProductCardProps) => 
             {product.badge}
           </div>
         )}
+        
+        {/* New Product Actions */}
+        <div className="absolute top-3 right-3 space-y-2 opacity-0 transform translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+          <button
+            onClick={handleWishlistToggle}
+            className={`p-2 rounded-full shadow-md ${
+              isInWishlist(product.id) 
+                ? 'bg-rose-50 text-rose-500' 
+                : 'bg-white text-primary hover:text-rose-500'
+            }`}
+            aria-label="Add to wishlist"
+          >
+            <Heart size={16} fill={isInWishlist(product.id) ? "currentColor" : "none"} />
+          </button>
+          
+          {onQuickView && (
+            <button
+              onClick={handleQuickView}
+              className="p-2 bg-white rounded-full shadow-md text-primary hover:text-primary/70"
+              aria-label="Quick view"
+            >
+              <Eye size={16} />
+            </button>
+          )}
+        </div>
 
         <button
           onClick={handleAddToCart}
