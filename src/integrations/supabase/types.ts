@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          image: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string
@@ -80,6 +107,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      product_ratings: {
+        Row: {
+          average_rating: number
+          created_at: string
+          id: string
+          product_id: string
+          reviews_count: number
+          updated_at: string
+        }
+        Insert: {
+          average_rating?: number
+          created_at?: string
+          id?: string
+          product_id: string
+          reviews_count?: number
+          updated_at?: string
+        }
+        Update: {
+          average_rating?: number
+          created_at?: string
+          id?: string
+          product_id?: string
+          reviews_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_ratings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_variants: {
         Row: {
