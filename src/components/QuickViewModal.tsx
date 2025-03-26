@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -13,6 +12,7 @@ import { useCart } from '@/hooks/useCart';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
 import { ChevronRight, Star, Check } from 'lucide-react';
+import { useProductRatings } from '@/hooks/useProductRatings';
 
 interface QuickViewModalProps {
   isOpen: boolean;
@@ -28,6 +28,11 @@ export const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps
 
   if (!product) return null;
 
+  // Get product ratings from the backend
+  const { data: ratingData } = useProductRatings(product.id);
+  const rating = ratingData?.average_rating || 0;
+  const reviewsCount = ratingData?.reviews_count || 0;
+
   const handleAddToCart = () => {
     addToCart(product, quantity, selectedVariant || undefined);
     toast({
@@ -39,10 +44,6 @@ export const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps
 
   const incrementQuantity = () => setQuantity(prev => prev + 1);
   const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
-
-  // Default rating and review count for display purposes
-  const rating = 4;
-  const reviewsCount = 12;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

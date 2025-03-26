@@ -11,11 +11,13 @@ import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, TrendingUp, Package, Heart, Clock, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useCategories } from '@/hooks/useCategories';
 
 const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
+  // Fetch data from backend
   const { data: featuredProducts = [], isLoading: isFeaturedLoading } = useQuery({
     queryKey: ['featuredProducts'],
     queryFn: getFeaturedProducts,
@@ -34,6 +36,9 @@ const Index = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  // Fetch categories from backend
+  const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
+
   const handleQuickView = (product: Product) => {
     setSelectedProduct(product);
     setIsQuickViewOpen(true);
@@ -44,11 +49,12 @@ const Index = () => {
     setTimeout(() => setSelectedProduct(null), 300); // Clear after animation
   };
   
-  const categoryGroups = [
-    { name: 'Electronics', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', path: '/products?category=electronics' },
-    { name: 'Clothing', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', path: '/products?category=clothing' },
-    { name: 'Home & Kitchen', image: 'https://images.unsplash.com/photo-1556910096-6f5e72db6803?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', path: '/products?category=home' },
-    { name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', path: '/products?category=beauty' },
+  // Fallback to default categories if API call fails
+  const categoryGroups = categories.length > 0 ? categories : [
+    { id: "1", name: 'Electronics', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'electronics' },
+    { id: "2", name: 'Clothing', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'clothing' },
+    { id: "3", name: 'Home & Kitchen', image: 'https://images.unsplash.com/photo-1556910096-6f5e72db6803?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'home' },
+    { id: "4", name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'beauty' },
   ];
   
   return (
@@ -72,26 +78,35 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {categoryGroups.map((category, index) => (
-              <Link 
-                key={category.name}
-                to={category.path}
-                className="relative rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 group"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="aspect-square overflow-hidden">
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="h-full w-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60"></div>
+            {isCategoriesLoading ? (
+              // Loading skeleton for categories
+              [...Array(4)].map((_, index) => (
+                <div key={index} className="animate-pulse rounded-xl overflow-hidden">
+                  <div className="aspect-square bg-muted"></div>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                  <h3 className="font-medium">{category.name}</h3>
-                </div>
-              </Link>
-            ))}
+              ))
+            ) : (
+              categoryGroups.slice(0, 4).map((category, index) => (
+                <Link 
+                  key={category.id || index}
+                  to={`/products?category=${category.slug}`}
+                  className="relative rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 group"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="aspect-square overflow-hidden">
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      className="h-full w-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60"></div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                    <h3 className="font-medium">{category.name}</h3>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -249,7 +264,7 @@ const Index = () => {
               />
               <button
                 type="submit"
-                className="btn-hover inline-flex h-12 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="btn-hover inline-flex h-12 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Subscribe
               </button>
