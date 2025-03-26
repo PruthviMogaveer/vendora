@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Hero } from '@/components/Hero';
@@ -6,6 +5,7 @@ import { Footer } from '@/components/Footer';
 import { Navbar } from '@/components/Navbar';
 import { getFeaturedProducts, getNewArrivals, getPopularProducts } from '@/services/productService';
 import { ProductFeaturedSection } from '@/components/ProductFeaturedSection';
+import { ProductCard } from '@/components/ProductCard';
 import { QuickViewModal } from '@/components/QuickViewModal';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';

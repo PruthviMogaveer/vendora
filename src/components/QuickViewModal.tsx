@@ -40,6 +40,10 @@ export const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps
   const incrementQuantity = () => setQuantity(prev => prev + 1);
   const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
 
+  // Default rating and review count for display purposes
+  const rating = 4;
+  const reviewsCount = 12;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden">
@@ -63,11 +67,11 @@ export const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps
                     <Star 
                       key={i} 
                       size={14} 
-                      fill={i < (product.rating || 4) ? "currentColor" : "none"} 
+                      fill={i < rating ? "currentColor" : "none"} 
                     />
                   ))}
                 </div>
-                <span className="text-muted-foreground">({product.reviews_count || 12} reviews)</span>
+                <span className="text-muted-foreground">({reviewsCount} reviews)</span>
               </DialogDescription>
             </DialogHeader>
             
