@@ -8,7 +8,7 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/context/AuthContext";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
