@@ -1,12 +1,13 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { useQuery } from '@tanstack/react-query';
-import { getDeals } from '@/services/productService';
+import { getDeals } from '@/services/productQueryService';
 import { ProductCard } from '@/components/ProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const Deals = () => {
   const { data: dealProducts = [], isLoading } = useQuery({
@@ -14,6 +15,16 @@ const Deals = () => {
     queryFn: getDeals,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Function to handle tab change and scroll to top
+  const handleTabChange = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Filter products by deal type
+  const flashDeals = dealProducts.filter(product => product.badge === 'flash');
+  const clearanceDeals = dealProducts.filter(product => product.badge === 'clearance');
+  const bundleDeals = dealProducts.filter(product => product.badge === 'bundle');
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -30,7 +41,7 @@ const Deals = () => {
             </p>
           </div>
           
-          <Tabs defaultValue="all" className="mb-12">
+          <Tabs defaultValue="all" className="mb-12" onValueChange={handleTabChange}>
             <div className="flex justify-center mb-8">
               <TabsList>
                 <TabsTrigger value="all">All Deals</TabsTrigger>
@@ -67,21 +78,63 @@ const Deals = () => {
             </TabsContent>
             
             <TabsContent value="flash" className="animate-fade-in">
-              <div className="text-center py-16">
-                <p className="text-muted-foreground">Coming soon! Check back later for flash deals.</p>
-              </div>
+              {flashDeals.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {flashDeals.map((product, index) => (
+                    <div 
+                      key={product.id} 
+                      className="animate-slide-up"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <ProductCard product={product} featured={true} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <p className="text-muted-foreground">No flash deals available at the moment. Check back later!</p>
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="clearance" className="animate-fade-in">
-              <div className="text-center py-16">
-                <p className="text-muted-foreground">Coming soon! Check back later for clearance deals.</p>
-              </div>
+              {clearanceDeals.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {clearanceDeals.map((product, index) => (
+                    <div 
+                      key={product.id} 
+                      className="animate-slide-up"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <ProductCard product={product} featured={true} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <p className="text-muted-foreground">No clearance items available at the moment. Check back later!</p>
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="bundle" className="animate-fade-in">
-              <div className="text-center py-16">
-                <p className="text-muted-foreground">Coming soon! Check back later for bundle offers.</p>
-              </div>
+              {bundleDeals.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {bundleDeals.map((product, index) => (
+                    <div 
+                      key={product.id} 
+                      className="animate-slide-up"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <ProductCard product={product} featured={true} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <p className="text-muted-foreground">No bundle offers available at the moment. Check back later!</p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
           

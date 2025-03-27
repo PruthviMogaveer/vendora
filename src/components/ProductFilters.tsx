@@ -4,6 +4,7 @@ import { Filter, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { setActiveCategory, clearFilters, fetchProducts } from '@/store/slices/productsSlice';
+import { useCategories } from '@/hooks/useCategories';
 
 interface ProductFiltersProps {
   setCurrentPage: (page: number) => void;
@@ -13,8 +14,9 @@ export const ProductFilters = ({
   setCurrentPage,
 }: ProductFiltersProps) => {
   const dispatch = useAppDispatch();
-  const { categories, activeCategory, searchQuery } = useAppSelector(state => state.products);
-
+  const { activeCategory, searchQuery } = useAppSelector(state => state.products);
+  const { data: categories = [] } = useCategories();
+  
   const handleCategoryChange = (category: string | null) => {
     dispatch(setActiveCategory(category));
     setCurrentPage(1);
@@ -55,15 +57,15 @@ export const ProductFilters = ({
           
           {categories.map(category => (
             <button
-              key={category}
-              onClick={() => handleCategoryChange(category)}
+              key={category.id}
+              onClick={() => handleCategoryChange(category.slug)}
               className={`text-sm w-full text-left px-2 py-1.5 rounded capitalize transition-colors ${
-                activeCategory === category
+                activeCategory === category.slug
                   ? 'bg-primary text-primary-foreground'
                   : 'hover:bg-secondary'
               }`}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>

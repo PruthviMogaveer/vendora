@@ -1,3 +1,4 @@
+
 import { Product } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -36,11 +37,12 @@ export const getNewArrivals = async (): Promise<Product[]> => {
 };
 
 export const getPopularProducts = async (): Promise<Product[]> => {
-  // This is a placeholder - in a real app, you'd fetch from Supabase
+  // Since we don't have a views column yet, we'll just get products with old_price
+  // as these are likely to be popular due to discounts
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .order('views', { ascending: false })
+    .not('old_price', 'is', null)
     .limit(4);
     
   if (error) {
