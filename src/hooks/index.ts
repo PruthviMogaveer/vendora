@@ -5,3 +5,4 @@ export { useCart } from './useCart';
 export { useWishlist } from './useWishlist';
 export { useProductRatings } from './useProductRatings';
 export { useCategories } from './useCategories';
+export { useAuth } from './useAuth';
