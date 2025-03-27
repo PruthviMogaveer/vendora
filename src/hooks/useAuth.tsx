@@ -24,7 +24,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const getSession = async () => {
+    const setupAuth = async () => {
+      setLoading(true);
+      
+      // Set up auth state listener FIRST
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        setSession(session);
+        
+        if (session?.user) {
+          const fetchData = async () => {
+            try {
+              await fetchUserProfile(session.user);
+            } catch (error) {
+              console.error("Error in auth state change handler:", error);
+            }
+          };
+          
+          // Using setTimeout to prevent potential deadlocks
+          setTimeout(fetchData, 0);
+        } else {
+          setUser(null);
+        }
+      });
+
+      // THEN check for existing session
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       
@@ -33,25 +56,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       setLoading(false);
-    };
-
-    getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
       
-      if (session?.user) {
-        await fetchUserProfile(session.user);
-      } else {
-        setUser(null);
-      }
-      
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
+      return () => {
+        subscription.unsubscribe();
+      };
     };
+    
+    setupAuth();
   }, []);
 
   const fetchUserProfile = async (authUser: SupabaseUser) => {
@@ -75,6 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
+      setUser(null);
     }
   };
 

@@ -1,36 +1,49 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+import { HomeLayout } from '@/components/home/HomeLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
 
 const Profile = () => {
-  const { user, loading, updateProfile } = useAuth();
-  const [formData, setFormData] = useState({
-    first_name: user?.first_name || '',
-    last_name: user?.last_name || '',
-    address: user?.address || '',
-    city: user?.city || '',
-    state: user?.state || '',
-    zip_code: user?.zip_code || ''
-  });
+  const { user, loading, updateProfile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const form = useForm({
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      address: '',
+      city: '',
+      state: '',
+      zip_code: ''
+    }
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Update form when user data is loaded
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        zip_code: user.zip_code || ''
+      });
+    }
+  }, [user, form]);
+
+  const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      await updateProfile(formData);
+      await updateProfile(data);
     } catch (error) {
       console.error('Error updating profile:', error);
     } finally {
@@ -38,16 +51,19 @@ const Profile = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   // If still loading, show a loading indicator
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center">
+      <HomeLayout>
+        <div className="flex items-center justify-center h-[50vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </main>
-        <Footer />
-      </div>
+        </div>
+      </HomeLayout>
     );
   }
 
@@ -57,77 +73,94 @@ const Profile = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow">
-        <div className="container mx-auto py-10">
-          <h1 className="text-3xl font-bold text-center mb-6">My Profile</h1>
-          
-          <div className="max-w-2xl mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Update your personal information.</CardDescription>
-              </CardHeader>
-              <form onSubmit={handleSubmit}>
+    <HomeLayout>
+      <div className="container mx-auto py-10">
+        <h1 className="text-3xl font-bold text-center mb-6">My Profile</h1>
+        
+        <div className="max-w-2xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Information</CardTitle>
+              <CardDescription>Update your personal information.</CardDescription>
+            </CardHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)}>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="first_name">First Name</Label>
-                      <Input 
-                        id="first_name" 
-                        name="first_name" 
-                        value={formData.first_name} 
-                        onChange={handleChange} 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="last_name">Last Name</Label>
-                      <Input 
-                        id="last_name" 
-                        name="last_name" 
-                        value={formData.last_name} 
-                        onChange={handleChange} 
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input 
-                      id="address" 
-                      name="address" 
-                      value={formData.address} 
-                      onChange={handleChange} 
+                    <FormField
+                      control={form.control}
+                      name="first_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="last_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
                     />
                   </div>
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input 
-                        id="city" 
-                        name="city" 
-                        value={formData.city} 
-                        onChange={handleChange} 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="state">State</Label>
-                      <Input 
-                        id="state" 
-                        name="state" 
-                        value={formData.state} 
-                        onChange={handleChange} 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="zip_code">ZIP Code</Label>
-                      <Input 
-                        id="zip_code" 
-                        name="zip_code" 
-                        value={formData.zip_code} 
-                        onChange={handleChange} 
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="zip_code"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ZIP Code</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <div className="pt-2">
                     <p className="text-sm text-muted-foreground">
@@ -138,18 +171,24 @@ const Profile = () => {
                     </p>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <CardFooter className="flex justify-between">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleSignOut}
+                  >
+                    Sign Out
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </CardFooter>
               </form>
-            </Card>
-          </div>
+            </Form>
+          </Card>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </HomeLayout>
   );
 };
 

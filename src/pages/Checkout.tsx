@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+import { HomeLayout } from '@/components/home/HomeLayout';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -15,6 +14,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 const Checkout = () => {
@@ -25,34 +25,65 @@ const Checkout = () => {
     clearCart
   } = useCart();
   
-  const [loading, setLoading] = useState(false);
+  const { user, loading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const cartTotal = getCartTotal();
   const shippingCost = cartTotal > 100 ? 0 : 10;
   const orderTotal = cartTotal + shippingCost;
   
+  // Check if user is authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      toast.error('Please login to continue checkout');
+      navigate('/login', { state: { from: '/checkout' } });
+    }
+  }, [user, loading, navigate]);
+
+  // If cart is empty or still checking auth, redirect or show loading
   if (cartItems.length === 0) {
     navigate('/cart');
     return null;
   }
   
-  const handleSubmit = (e: React.FormEvent) => {
+  if (loading) {
+    return (
+      <HomeLayout>
+        <div className="flex items-center justify-center h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </HomeLayout>
+    );
+  }
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     
-    // Simulate order processing
-    setTimeout(() => {
-      setLoading(false);
+    if (!user) {
+      toast.error('Please login to complete your purchase');
+      navigate('/login');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Simulate order processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       clearCart();
       toast.success('Order placed successfully!');
       navigate('/');
-    }, 1500);
+    } catch (error) {
+      console.error('Error placing order:', error);
+      toast.error('Failed to place order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
+    <HomeLayout>
       <div className="flex-1 pt-24 pb-12">
         <div className="container mx-auto px-6 md:px-12">
           <button
@@ -79,6 +110,7 @@ const Checkout = () => {
                       <Label htmlFor="firstName">First Name</Label>
                       <Input 
                         id="firstName" 
+                        defaultValue={user?.first_name || ''}
                         placeholder="John" 
                         required
                       />
@@ -87,6 +119,7 @@ const Checkout = () => {
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input 
                         id="lastName" 
+                        defaultValue={user?.last_name || ''}
                         placeholder="Doe" 
                         required
                       />
@@ -97,8 +130,10 @@ const Checkout = () => {
                     <Input 
                       id="email" 
                       type="email"
+                      defaultValue={user?.email || ''}
                       placeholder="john.doe@example.com" 
                       required
+                      readOnly
                     />
                   </div>
                   <div className="space-y-2">
@@ -120,6 +155,7 @@ const Checkout = () => {
                     <Label htmlFor="address">Address</Label>
                     <Input 
                       id="address" 
+                      defaultValue={user?.address || ''}
                       placeholder="123 Main St" 
                       required
                     />
@@ -136,6 +172,7 @@ const Checkout = () => {
                       <Label htmlFor="city">City</Label>
                       <Input 
                         id="city" 
+                        defaultValue={user?.city || ''}
                         placeholder="San Francisco" 
                         required
                       />
@@ -144,6 +181,7 @@ const Checkout = () => {
                       <Label htmlFor="state">State/Province</Label>
                       <Input 
                         id="state" 
+                        defaultValue={user?.state || ''}
                         placeholder="California" 
                         required
                       />
@@ -152,6 +190,7 @@ const Checkout = () => {
                       <Label htmlFor="zip">ZIP/Postal Code</Label>
                       <Input 
                         id="zip" 
+                        defaultValue={user?.zip_code || ''}
                         placeholder="94103" 
                         required
                       />
@@ -211,9 +250,9 @@ const Checkout = () => {
                 <Button
                   type="submit"
                   className="btn-hover w-full h-12"
-                  disabled={loading}
+                  disabled={isSubmitting}
                 >
-                  {loading ? 'Processing...' : 'Place Order'}
+                  {isSubmitting ? 'Processing...' : 'Place Order'}
                 </Button>
               </form>
             </div>
@@ -223,7 +262,7 @@ const Checkout = () => {
               <div className="sticky top-24 bg-secondary/30 rounded-lg p-6">
                 <h2 className="text-lg font-medium mb-4">Order Summary</h2>
                 
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[300px] overflow-y-auto">
                   {cartItems.map((item) => (
                     <div key={item.product.id} className="flex gap-3">
                       <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
@@ -283,9 +322,7 @@ const Checkout = () => {
           </div>
         </div>
       </div>
-      
-      <Footer />
-    </div>
+    </HomeLayout>
   );
 };
 

@@ -1,81 +1,128 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { toast } from 'sonner';
+import { AlertCircle, EyeIcon, EyeOffIcon } from 'lucide-react';
+
+// Define form validation schemas
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' })
+});
+
+const registerSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address' }),
+  password: z.string().min(8, { message: 'Password must be at least 8 characters' })
+    .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+    .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
+  confirmPassword: z.string(),
+  firstName: z.string().min(1, { message: 'First name is required' }),
+  lastName: z.string().min(1, { message: 'Last name is required' }),
+  isVendor: z.boolean().optional().default(false)
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword']
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const AuthForm = () => {
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
+  const location = useLocation();
+  const { signIn, signUp, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    isVendor: false
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("login");
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const redirectPath = location.state?.from || '/';
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, navigate, location]);
+
+  // Login form
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: ''
+    }
   });
 
-  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLoginData(prev => ({ ...prev, [name]: value }));
-  };
+  // Register form
+  const registerForm = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      firstName: '',
+      lastName: '',
+      isVendor: false
+    }
+  });
 
-  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    const inputValue = type === 'checkbox' ? checked : value;
-    setRegisterData(prev => ({ ...prev, [name]: inputValue }));
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (values: LoginFormValues) => {
     setIsLoading(true);
     
     try {
-      await signIn(loginData.email, loginData.password);
-      navigate('/');
-    } catch (error) {
+      await signIn(values.email, values.password);
+      const redirectPath = location.state?.from || '/';
+      navigate(redirectPath);
+      toast.success('Logged in successfully');
+    } catch (error: any) {
       console.error(error);
+      toast.error(error.message || 'Failed to sign in');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (registerData.password !== registerData.confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-    
+  const handleRegister = async (values: RegisterFormValues) => {
     setIsLoading(true);
     
     try {
-      await signUp(registerData.email, registerData.password, {
-        first_name: registerData.firstName,
-        last_name: registerData.lastName,
-        is_vendor: registerData.isVendor
+      await signUp(values.email, values.password, {
+        first_name: values.firstName,
+        last_name: values.lastName,
+        is_vendor: values.isVendor
       });
       
-      // After signup, we don't automatically navigate, since the user
-      // should receive a confirmation email (set in Supabase)
-    } catch (error) {
+      toast.success('Account created! Please check your email for verification instructions.');
+      setActiveTab('login');
+    } catch (error: any) {
       console.error(error);
+      toast.error(error.message || 'Failed to create account');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
     <div className="container max-w-md mx-auto py-10">
-      <Tabs defaultValue="login" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="register">Register</TabsTrigger>
@@ -87,38 +134,63 @@ export const AuthForm = () => {
               <CardTitle>Login</CardTitle>
               <CardDescription>Enter your credentials to access your account.</CardDescription>
             </CardHeader>
-            <form onSubmit={handleLogin}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input 
-                    id="login-email" 
-                    name="email" 
-                    type="email" 
-                    placeholder="email@example.com" 
-                    value={loginData.email} 
-                    onChange={handleLoginChange} 
-                    required 
+            <Form {...loginForm}>
+              <form onSubmit={loginForm.handleSubmit(handleLogin)}>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={loginForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="email@example.com" 
+                            type="email"
+                            autoComplete="email"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input 
-                    id="login-password" 
-                    name="password" 
-                    type="password" 
-                    value={loginData.password} 
-                    onChange={handleLoginChange} 
-                    required 
+                  
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input 
+                              type={showPassword ? "text" : "password"} 
+                              autoComplete="current-password"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <button 
+                            type="button"
+                            onClick={togglePasswordVisibility}
+                            className="absolute right-3 top-2.5 text-gray-500"
+                            tabIndex={-1}
+                          >
+                            {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                          </button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Logging in...' : 'Login'}
-                </Button>
-              </CardFooter>
-            </form>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Logging in...' : 'Login'}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Form>
           </Card>
         </TabsContent>
         
@@ -128,80 +200,145 @@ export const AuthForm = () => {
               <CardTitle>Create an account</CardTitle>
               <CardDescription>Fill out the form below to create your account.</CardDescription>
             </CardHeader>
-            <form onSubmit={handleRegister}>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-first-name">First Name</Label>
-                    <Input 
-                      id="register-first-name" 
-                      name="firstName" 
-                      value={registerData.firstName} 
-                      onChange={handleRegisterChange} 
+            <Form {...registerForm}>
+              <form onSubmit={registerForm.handleSubmit(handleRegister)}>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={registerForm.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={registerForm.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-last-name">Last Name</Label>
-                    <Input 
-                      id="register-last-name" 
-                      name="lastName" 
-                      value={registerData.lastName} 
-                      onChange={handleRegisterChange} 
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-email">Email</Label>
-                  <Input 
-                    id="register-email" 
-                    name="email" 
-                    type="email" 
-                    placeholder="email@example.com" 
-                    value={registerData.email} 
-                    onChange={handleRegisterChange} 
-                    required 
+                  
+                  <FormField
+                    control={registerForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="email@example.com" 
+                            type="email"
+                            autoComplete="email"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
-                  <Input 
-                    id="register-password" 
-                    name="password" 
-                    type="password" 
-                    value={registerData.password} 
-                    onChange={handleRegisterChange} 
-                    required 
+                  
+                  <FormField
+                    control={registerForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input 
+                              type={showPassword ? "text" : "password"}
+                              autoComplete="new-password"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <button 
+                            type="button"
+                            onClick={togglePasswordVisibility}
+                            className="absolute right-3 top-2.5 text-gray-500"
+                            tabIndex={-1}
+                          >
+                            {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                          </button>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Password must be at least 8 characters, include an uppercase letter and a number.
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-confirm-password">Confirm Password</Label>
-                  <Input 
-                    id="register-confirm-password" 
-                    name="confirmPassword" 
-                    type="password" 
-                    value={registerData.confirmPassword} 
-                    onChange={handleRegisterChange} 
-                    required 
+                  
+                  <FormField
+                    control={registerForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm Password</FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input 
+                              type={showConfirmPassword ? "text" : "password"}
+                              autoComplete="new-password"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <button 
+                            type="button"
+                            onClick={toggleConfirmPasswordVisibility}
+                            className="absolute right-3 top-2.5 text-gray-500"
+                            tabIndex={-1}
+                          >
+                            {showConfirmPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                          </button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Input 
-                    id="is-vendor" 
-                    name="isVendor" 
-                    type="checkbox" 
-                    className="w-4 h-4" 
-                    checked={registerData.isVendor} 
-                    onChange={handleRegisterChange} 
+                  
+                  <FormField
+                    control={registerForm.control}
+                    name="isVendor"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Input 
+                            id="is-vendor" 
+                            type="checkbox" 
+                            className="w-4 h-4" 
+                            checked={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel htmlFor="is-vendor" className="text-sm font-normal">
+                          Register as a vendor
+                        </FormLabel>
+                      </FormItem>
+                    )}
                   />
-                  <Label htmlFor="is-vendor">Register as a vendor</Label>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Creating account...' : 'Create account'}
-                </Button>
-              </CardFooter>
-            </form>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Creating account...' : 'Create account'}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Form>
           </Card>
         </TabsContent>
       </Tabs>
