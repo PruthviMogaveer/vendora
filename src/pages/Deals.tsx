@@ -20,6 +20,11 @@ const Deals = () => {
   const handleTabChange = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Filter products by deal type
   const flashDeals = dealProducts.filter(product => product.badge === 'flash');
@@ -61,6 +66,10 @@ const Deals = () => {
                       <Skeleton className="h-4 w-1/4" />
                     </div>
                   ))}
+                </div>
+              ) : dealProducts.length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="text-muted-foreground">No deals available at the moment. Check back later!</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

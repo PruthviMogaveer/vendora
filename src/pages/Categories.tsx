@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { useCategories } from '@/hooks/useCategories';
@@ -9,6 +9,11 @@ import { Category } from '@/services/categoryService';
 
 const Categories = () => {
   const { data: categories = [], isLoading, error } = useCategories();
+  
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -34,6 +39,14 @@ const Categories = () => {
                 </div>
               ))}
             </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-500">Failed to load categories. Please try again later.</p>
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No categories found. Check back soon!</p>
+            </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {categories.map((category: Category, index) => (
@@ -46,9 +59,12 @@ const Categories = () => {
                   <div className="relative rounded-xl overflow-hidden shadow-md transition-all duration-300 group-hover:shadow-lg">
                     <div className="aspect-square overflow-hidden">
                       <img
-                        src={category.image}
+                        src={category.image || "/placeholder.svg"}
                         alt={category.name}
                         className="h-full w-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/placeholder.svg";
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60"></div>
                     </div>
