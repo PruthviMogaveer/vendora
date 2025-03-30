@@ -12,6 +12,15 @@ export const AuthForm = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
   
+  // Get the tab from URL params if any
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'register') {
+      setActiveTab('register');
+    }
+  }, [location]);
+  
   // Redirect if already logged in
   useEffect(() => {
     if (user) {

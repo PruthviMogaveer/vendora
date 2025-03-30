@@ -9,6 +9,7 @@ import { store } from "./store";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -40,13 +41,37 @@ const App = () => (
                   <Route path="/products" element={<Products />} />
                   <Route path="/products/:id" element={<ProductDetail />} />
                   <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/checkout" element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/login" element={<Login />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-                  <Route path="/vendor/product/new" element={<ProductForm />} />
-                  <Route path="/vendor/product/edit/:id" element={<ProductForm />} />
-                  <Route path="/wishlist" element={<Wishlist />} />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/vendor/dashboard" element={
+                    <ProtectedRoute>
+                      <VendorDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/vendor/product/new" element={
+                    <ProtectedRoute>
+                      <ProductForm />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/vendor/product/edit/:id" element={
+                    <ProtectedRoute>
+                      <ProductForm />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/wishlist" element={
+                    <ProtectedRoute>
+                      <Wishlist />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/deals" element={<Deals />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
