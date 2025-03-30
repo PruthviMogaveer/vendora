@@ -10,6 +10,8 @@ export interface Category {
 
 export const getCategories = async (): Promise<Category[]> => {
   try {
+    console.log('Fetching categories from Supabase...');
+    
     // Fetch categories from the backend
     const { data, error } = await supabase
       .from('categories')
@@ -21,6 +23,7 @@ export const getCategories = async (): Promise<Category[]> => {
       return [];
     }
     
+    console.log('Categories fetched successfully:', data?.length || 0, 'categories found');
     return data || [];
   } catch (error) {
     console.error('Error in getCategories service:', error);

@@ -7,5 +7,9 @@ export const useCategories = () => {
     queryKey: ['categories'],
     queryFn: getCategories,
     staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 2,
+    onError: (error) => {
+      console.error('Error fetching categories:', error);
+    }
   });
 };

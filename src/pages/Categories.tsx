@@ -6,14 +6,26 @@ import { useCategories } from '@/hooks/useCategories';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Category } from '@/services/categoryService';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, RefreshCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Categories = () => {
-  const { data: categories = [], isLoading, error } = useCategories();
+  const { 
+    data: categories = [], 
+    isLoading, 
+    error, 
+    refetch,
+    isRefetching
+  } = useCategories();
   
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+    
+    // Log data for debugging
+    console.log('Categories component mounted, data:', categories);
+  }, [categories]);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -30,6 +42,25 @@ const Categories = () => {
             </p>
           </div>
           
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="flex items-center justify-between">
+                <span>Failed to load categories. Please try again.</span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => refetch()} 
+                  disabled={isRefetching}
+                  className="ml-4"
+                >
+                  <RefreshCcw className="h-4 w-4 mr-2" />
+                  Retry
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {isLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
@@ -39,13 +70,18 @@ const Categories = () => {
                 </div>
               ))}
             </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-red-500">Failed to load categories. Please try again later.</p>
-            </div>
           ) : categories.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No categories found. Check back soon!</p>
+              <p className="text-muted-foreground mb-4">No categories found. Check back soon!</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => refetch()} 
+                disabled={isRefetching}
+              >
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
