@@ -4,13 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { User } from '@/types/product';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { fetchUserProfile, signIn, signOut, signUp, updateProfile } from '@/services/authService';
+import { fetchUserProfile, signIn, signOut, signUp, updateProfile, signInWithGoogle } from '@/services/authService';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string, userData?: Partial<User>) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
@@ -89,6 +90,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const handleSignInWithGoogle = async () => {
+    try {
+      await signInWithGoogle();
+      // No toast needed here as the user will be redirected to Google's login page
+    } catch (error: any) {
+      toast({
+        title: "Error signing in with Google",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const handleSignUp = async (email: string, password: string, userData?: Partial<User>) => {
     try {
       await signUp(email, password, userData);
@@ -147,7 +162,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       user, 
       session, 
       loading, 
-      signIn: handleSignIn, 
+      signIn: handleSignIn,
+      signInWithGoogle: handleSignInWithGoogle,
       signUp: handleSignUp, 
       signOut: handleSignOut, 
       updateProfile: handleUpdateProfile 
