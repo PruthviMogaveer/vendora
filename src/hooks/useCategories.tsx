@@ -8,8 +8,10 @@ export const useCategories = () => {
     queryFn: getCategories,
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 2,
-    onError: (error) => {
-      console.error('Error fetching categories:', error);
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error fetching categories:', error);
+      }
     }
   });
 };
