@@ -81,3 +81,14 @@ export const updateProfile = async (userId: string, data: Partial<User>) => {
 
   if (error) throw error;
 };
+
+export const becomeVendor = async (userId: string) => {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_vendor: true })
+    .eq('id', userId);
+
+  if (error) throw error;
+  
+  return { success: true };
+};

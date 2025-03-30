@@ -53,17 +53,17 @@ const App = () => (
                     </ProtectedRoute>
                   } />
                   <Route path="/vendor/dashboard" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute vendorOnly>
                       <VendorDashboard />
                     </ProtectedRoute>
                   } />
                   <Route path="/vendor/product/new" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute vendorOnly>
                       <ProductForm />
                     </ProtectedRoute>
                   } />
                   <Route path="/vendor/product/edit/:id" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute vendorOnly>
                       <ProductForm />
                     </ProtectedRoute>
                   } />

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { User } from '@/types/product';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { fetchUserProfile, signIn, signOut, signUp, updateProfile, signInWithGoogle } from '@/services/authService';
+import { fetchUserProfile, signIn, signOut, signUp, updateProfile, signInWithGoogle, becomeVendor } from '@/services/authService';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +15,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData?: Partial<User>) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  becomeVendor: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -157,6 +158,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const handleBecomeVendor = async () => {
+    try {
+      if (!user?.id) throw new Error("User not authenticated");
+      await becomeVendor(user.id);
+      setUser(prev => prev ? { ...prev, is_vendor: true } : null);
+      
+      toast({
+        title: "Vendor status activated",
+        description: "You are now a vendor! You can access your vendor dashboard.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error activating vendor status",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -166,7 +186,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signInWithGoogle: handleSignInWithGoogle,
       signUp: handleSignUp, 
       signOut: handleSignOut, 
-      updateProfile: handleUpdateProfile 
+      updateProfile: handleUpdateProfile,
+      becomeVendor: handleBecomeVendor
     }}>
       {children}
     </AuthContext.Provider>

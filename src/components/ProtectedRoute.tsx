@@ -6,9 +6,10 @@ import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  vendorOnly?: boolean;
 }
 
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children, vendorOnly = false }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -31,6 +32,12 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         replace 
       />
     );
+  }
+
+  // If vendor-only route and user is not a vendor
+  if (vendorOnly && !user.is_vendor) {
+    toast.error('This page is only accessible to vendors');
+    return <Navigate to="/profile" replace />;
   }
 
   // If authenticated, render the children
