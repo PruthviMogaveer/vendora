@@ -9,11 +9,17 @@ import { Navigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/product';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PlusCircle, Package, ShoppingCart, BarChart3 } from 'lucide-react';
 
 const VendorDashboard = () => {
   const { user, loading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    productCount: 0,
+    orderCount: 0,
+    totalRevenue: 0
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,6 +28,21 @@ const VendorDashboard = () => {
       fetchVendorOrders();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (products.length > 0 || orders.length > 0) {
+      // Calculate stats based on products and orders
+      const productCount = products.length;
+      const orderCount = orders.length;
+      const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+      
+      setStats({
+        productCount,
+        orderCount,
+        totalRevenue
+      });
+    }
+  }, [products, orders]);
 
   const fetchVendorProducts = async () => {
     try {
@@ -90,7 +111,7 @@ const VendorDashboard = () => {
 
   // If not authenticated or not a vendor, redirect to login
   if (!loading && (!user || !user.is_vendor)) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/vendor/login" />;
   }
 
   return (
@@ -101,8 +122,36 @@ const VendorDashboard = () => {
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Vendor Dashboard</h1>
             <Button asChild>
-              <Link to="/vendor/product/new">Add New Product</Link>
+              <Link to="/vendor/product/new" className="flex items-center gap-2">
+                <PlusCircle size={18} />
+                Add New Product
+              </Link>
             </Button>
+          </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-6">
+                <Package className="h-12 w-12 text-primary mb-2" />
+                <p className="text-2xl font-bold">{stats.productCount}</p>
+                <p className="text-muted-foreground">Products</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-6">
+                <ShoppingCart className="h-12 w-12 text-primary mb-2" />
+                <p className="text-2xl font-bold">{stats.orderCount}</p>
+                <p className="text-muted-foreground">Orders</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-6">
+                <BarChart3 className="h-12 w-12 text-primary mb-2" />
+                <p className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</p>
+                <p className="text-muted-foreground">Revenue</p>
+              </CardContent>
+            </Card>
           </div>
 
           <Tabs defaultValue="products" className="w-full">
