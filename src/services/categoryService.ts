@@ -12,22 +12,22 @@ export const getCategories = async (): Promise<Category[]> => {
   try {
     console.log('Fetching categories from Supabase...');
     
-    // Fetch categories from the backend
+    // Fetch categories from the backend with better error handling
     const { data, error } = await supabase
       .from('categories')
       .select('*')
       .order('name', { ascending: true });
       
     if (error) {
-      console.error('Error fetching categories:', error);
-      return [];
+      console.error('Supabase error fetching categories:', error);
+      throw new Error(`Failed to fetch categories: ${error.message}`);
     }
     
-    console.log('Categories fetched successfully:', data?.length || 0, 'categories found');
+    console.log('Categories fetched successfully:', data);
     return data || [];
   } catch (error) {
     console.error('Error in getCategories service:', error);
-    return [];
+    throw error; // Rethrow to allow React Query to handle retries
   }
 };
 
