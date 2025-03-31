@@ -1,16 +1,17 @@
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, ShoppingCart, BarChart3 } from 'lucide-react';
+import { Package, ShoppingCart, BarChart3, BadgePercent } from 'lucide-react';
 
 interface StatsProps {
   productCount: number;
   orderCount: number;
   totalRevenue: number;
+  saleItemsCount?: number;
 }
 
-export const VendorStats = ({ productCount, orderCount, totalRevenue }: StatsProps) => {
+export const VendorStats = ({ productCount, orderCount, totalRevenue, saleItemsCount = 0 }: StatsProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-6">
           <Package className="h-12 w-12 text-primary mb-2" />
@@ -30,6 +31,13 @@ export const VendorStats = ({ productCount, orderCount, totalRevenue }: StatsPro
           <BarChart3 className="h-12 w-12 text-primary mb-2" />
           <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
           <p className="text-muted-foreground">Revenue</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-6">
+          <BadgePercent className="h-12 w-12 text-primary mb-2" />
+          <p className="text-2xl font-bold">{saleItemsCount}</p>
+          <p className="text-muted-foreground">Sale Items</p>
         </CardContent>
       </Card>
     </div>

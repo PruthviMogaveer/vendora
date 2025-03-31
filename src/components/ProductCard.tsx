@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Heart, Eye } from 'lucide-react';
@@ -18,6 +17,11 @@ export const ProductCard = ({ product, featured = false, onQuickView }: ProductC
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
+  
+  // Calculate discount percentage if product is on sale
+  const discountPercentage = product.old_price 
+    ? Math.round(((product.old_price - product.price) / product.old_price) * 100) 
+    : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -60,9 +64,10 @@ export const ProductCard = ({ product, featured = false, onQuickView }: ProductC
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-        {product.badge && (
+        {/* Show either badge or discount percentage */}
+        {(product.badge || discountPercentage > 0) && (
           <div className="absolute top-3 left-3 px-2 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-md">
-            {product.badge}
+            {discountPercentage > 0 ? `${discountPercentage}% OFF` : product.badge}
           </div>
         )}
         
