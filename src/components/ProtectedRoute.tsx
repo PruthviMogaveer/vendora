@@ -22,12 +22,12 @@ export const ProtectedRoute = ({ children, vendorOnly = false }: ProtectedRouteP
     );
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, redirect to appropriate login page
   if (!user) {
     toast.error('Please sign in to continue');
     return (
       <Navigate 
-        to="/login" 
+        to={vendorOnly ? "/vendor/login" : "/login"}
         state={{ from: location.pathname }} 
         replace 
       />

@@ -1,16 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Heart } from 'lucide-react';
+import { Menu, X, Heart, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchBar } from './SearchBar';
 import { CartDrawer } from './CartDrawer';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/hooks/useAuth';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { wishlistItems } = useWishlist();
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,6 +49,17 @@ export const Navbar = () => {
             <Link to="/deals" className="text-sm text-primary hover:text-primary/80 transition-colors">
               Deals
             </Link>
+            {user?.is_vendor ? (
+              <Link to="/vendor/dashboard" className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center">
+                <Store size={16} className="mr-1" />
+                Vendor Dashboard
+              </Link>
+            ) : (
+              <Link to="/vendor/login" className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center">
+                <Store size={16} className="mr-1" />
+                Sell on Vendora
+              </Link>
+            )}
           </nav>
           
           {/* Right Actions */}
@@ -125,6 +138,25 @@ export const Navbar = () => {
               >
                 Login
               </Link>
+              {user?.is_vendor ? (
+                <Link 
+                  to="/vendor/dashboard" 
+                  className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Store size={18} className="mr-2" />
+                  Vendor Dashboard
+                </Link>
+              ) : (
+                <Link 
+                  to="/vendor/login" 
+                  className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Store size={18} className="mr-2" />
+                  Sell on Vendora
+                </Link>
+              )}
             </nav>
           </div>
         </div>

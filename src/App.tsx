@@ -16,6 +16,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
+import VendorLogin from "./pages/VendorLogin";
 import Profile from "./pages/Profile";
 import VendorDashboard from "./pages/VendorDashboard";
 import ProductForm from "./pages/ProductForm";
@@ -47,6 +48,7 @@ const App = () => (
                     </ProtectedRoute>
                   } />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/vendor/login" element={<VendorLogin />} />
                   <Route path="/profile" element={
                     <ProtectedRoute>
                       <Profile />
