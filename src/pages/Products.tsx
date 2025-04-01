@@ -2,14 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { SlidersHorizontal, X, BadgePercent } from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ProductFilters } from '@/components/ProductFilters';
 import { ProductSearch } from '@/components/ProductSearch';
 import { ProductGrid } from '@/components/ProductGrid';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { fetchProducts } from '@/store/slices/productsSlice';
-import { Badge } from '@/components/ui/badge';
 
 const Products = () => {
   const [showFilters, setShowFilters] = useState(false);
@@ -19,13 +18,7 @@ const Products = () => {
   const { toast } = useToast();
   
   const dispatch = useAppDispatch();
-  const { 
-    filteredProducts, 
-    loading, 
-    error, 
-    showOnSale, 
-    minDiscountPercentage 
-  } = useAppSelector(state => state.products);
+  const { products, loading, error } = useAppSelector(state => state.products);
 
   // Fetch products on component mount
   useEffect(() => {
@@ -42,11 +35,11 @@ const Products = () => {
     }
   }, [error, toast]);
   
-  // Paginate filtered products
+  // Paginate products
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
     
   return (
     <div className="min-h-screen flex flex-col">
@@ -71,19 +64,6 @@ const Products = () => {
               setCurrentPage={setCurrentPage}
             />
           </div>
-          
-          {/* Active filters display */}
-          {showOnSale && (
-            <div className="flex justify-center mb-6 animate-slide-up">
-              <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
-                <BadgePercent size={14} />
-                {minDiscountPercentage > 0 ? 
-                  `Discount ${minDiscountPercentage}% or more` : 
-                  'On Sale Items'
-                }
-              </Badge>
-            </div>
-          )}
           
           {/* Mobile filter button */}
           <div className="md:hidden mb-6 animate-slide-up">
