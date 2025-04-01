@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,11 +14,14 @@ import { Separator } from '@/components/ui/separator';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { getProductById } from '@/services/productService';
+import { LogIn } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
 
@@ -39,6 +44,16 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to add items to your cart",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     addToCart(product, quantity, selectedVariant);
     toast({
       title: "Product added to cart",
@@ -56,7 +71,7 @@ const ProductDetail = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -72,7 +87,7 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="container mx-auto px-6 md:px-12 py-24 flex-grow">
+      <div className="container mx-auto px-4 md:px-12 py-24 flex-grow">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image */}
           <div>
@@ -85,7 +100,7 @@ const ProductDetail = () => {
 
           {/* Product Details */}
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">{product.name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">{product.name}</h1>
             <p className="text-muted-foreground mb-4">{product.description}</p>
 
             <div className="flex items-baseline gap-2 mb-4">
@@ -93,6 +108,11 @@ const ProductDetail = () => {
               {product.old_price && (
                 <span className="text-muted-foreground line-through text-sm">
                   ${product.old_price.toFixed(2)}
+                </span>
+              )}
+              {product.old_price && (
+                <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">
+                  {Math.round((1 - product.price / product.old_price) * 100)}% OFF
                 </span>
               )}
             </div>
@@ -129,9 +149,22 @@ const ProductDetail = () => {
               />
             </div>
 
-            <Button onClick={handleAddToCart} className="w-full">
-              Add to Cart
-            </Button>
+            {user ? (
+              <Button onClick={handleAddToCart} className="w-full">
+                Add to Cart
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <Link to="/login" className="w-full">
+                  <Button className="w-full" variant="outline">
+                    <LogIn className="mr-2 h-4 w-4" /> Log in to purchase
+                  </Button>
+                </Link>
+                <p className="text-sm text-muted-foreground text-center">
+                  You need to be logged in to add items to your cart
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

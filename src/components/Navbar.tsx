@@ -1,19 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Heart, Store, User } from 'lucide-react';
+import { Menu, X, Heart, Store, User, LogIn, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchBar } from './SearchBar';
 import { CartDrawer } from './CartDrawer';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { useCart } from '@/hooks/useCart';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { wishlistItems } = useWishlist();
   const { user } = useAuth();
+  const { cartItems } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +25,18 @@ export const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <header className={cn(
@@ -67,27 +81,29 @@ export const Navbar = () => {
           <div className="flex items-center space-x-1 md:space-x-4 animate-fade-in">
             <SearchBar />
             
-            <Link to="/wishlist" className="p-2 hover:bg-secondary rounded-full transition-colors relative">
-              <Heart size={20} className="text-primary" />
-              {wishlistItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-[10px] font-medium flex items-center justify-center text-white">
-                  {wishlistItems.length}
-                </span>
-              )}
-            </Link>
+            {user && (
+              <Link to="/wishlist" className="p-2 hover:bg-secondary rounded-full transition-colors relative">
+                <Heart size={20} className="text-primary" />
+                {wishlistItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-[10px] font-medium flex items-center justify-center text-white">
+                    {wishlistItems.length}
+                  </span>
+                )}
+              </Link>
+            )}
             
-            <CartDrawer />
+            {user && <CartDrawer />}
             
             {/* Authentication buttons for desktop */}
             {!user ? (
               <div className="hidden md:flex items-center space-x-2">
                 <Link to="/login">
                   <Button variant="outline" size="sm" className="flex items-center">
-                    <User size={16} className="mr-1" />
+                    <LogIn size={16} className="mr-1" />
                     Login
                   </Button>
                 </Link>
-                <Link to="/login">
+                <Link to="/login?tab=register">
                   <Button size="sm">Sign Up</Button>
                 </Link>
               </div>
@@ -100,6 +116,7 @@ export const Navbar = () => {
             <button 
               className="md:hidden p-2 hover:bg-secondary rounded-full transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (
                 <X size={20} className="text-primary" />
@@ -113,7 +130,7 @@ export const Navbar = () => {
       
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden h-screen bg-white animate-slide-in-right">
+        <div className="md:hidden fixed inset-0 pt-16 bg-white z-40 animate-slide-in-right overflow-y-auto">
           <div className="container mx-auto px-6 py-8">
             <nav className="flex flex-col space-y-6">
               <Link 
@@ -144,38 +161,71 @@ export const Navbar = () => {
               >
                 Deals
               </Link>
-              <Link 
-                to="/wishlist" 
-                className="text-lg text-primary hover:text-primary/80 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Wishlist
-              </Link>
-              <Link 
-                to="/login" 
-                className="text-lg text-primary hover:text-primary/80 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Login
-              </Link>
-              {user?.is_vendor ? (
-                <Link 
-                  to="/vendor/dashboard" 
-                  className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Store size={18} className="mr-2" />
-                  Vendor Dashboard
-                </Link>
+              
+              {user ? (
+                <>
+                  <Link 
+                    to="/wishlist" 
+                    className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Heart size={18} className="mr-2" />
+                    Wishlist
+                  </Link>
+                  <Link 
+                    to="/profile" 
+                    className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <User size={18} className="mr-2" />
+                    My Account
+                  </Link>
+                  <Link 
+                    to="/cart" 
+                    className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <ShoppingBag size={18} className="mr-2" />
+                    Cart
+                  </Link>
+                  {user.is_vendor && (
+                    <Link 
+                      to="/vendor/dashboard" 
+                      className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Store size={18} className="mr-2" />
+                      Vendor Dashboard
+                    </Link>
+                  )}
+                </>
               ) : (
-                <Link 
-                  to="/vendor/login" 
-                  className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Store size={18} className="mr-2" />
-                  Sell on Vendora
-                </Link>
+                <>
+                  <Link 
+                    to="/login" 
+                    className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <LogIn size={18} className="mr-2" />
+                    Login
+                  </Link>
+                  <Link 
+                    to="/login?tab=register" 
+                    className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <User size={18} className="mr-2" />
+                    Sign Up
+                  </Link>
+                  <Link 
+                    to="/vendor/login" 
+                    className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Store size={18} className="mr-2" />
+                    Sell on Vendora
+                  </Link>
+                </>
               )}
             </nav>
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -9,9 +10,10 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
 import { Product } from '@/types/product';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronRight, Star, Check } from 'lucide-react';
+import { ChevronRight, Star, Check, LogIn } from 'lucide-react';
 import { useProductRatings } from '@/hooks/useProductRatings';
 
 interface QuickViewModalProps {
@@ -24,6 +26,7 @@ export const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   if (!product) return null;
@@ -34,6 +37,15 @@ export const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps
   const reviewsCount = ratingData?.reviews_count || 0;
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to add items to your cart",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     addToCart(product, quantity, selectedVariant || undefined);
     toast({
       title: "Added to cart",
@@ -103,55 +115,67 @@ export const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps
                 <span className="text-muted-foreground">• Free shipping</span>
               </div>
               
-              {/* Variants */}
-              {product.variants && product.variants.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium block mb-2">Options</label>
-                  <div className="flex flex-wrap gap-2">
-                    {product.variants.map((variant) => (
-                      <button
-                        key={variant.id}
-                        className={`px-3 py-1 text-sm border rounded-full ${
-                          selectedVariant === variant.id
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-background hover:bg-secondary'
-                        }`}
-                        onClick={() => setSelectedVariant(variant.id)}
-                      >
-                        {variant.name}
-                      </button>
-                    ))}
+              {user && (
+                <>
+                  {/* Variants */}
+                  {product.variants && product.variants.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium block mb-2">Options</label>
+                      <div className="flex flex-wrap gap-2">
+                        {product.variants.map((variant) => (
+                          <button
+                            key={variant.id}
+                            className={`px-3 py-1 text-sm border rounded-full ${
+                              selectedVariant === variant.id
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-background hover:bg-secondary'
+                            }`}
+                            onClick={() => setSelectedVariant(variant.id)}
+                          >
+                            {variant.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Quantity */}
+                  <div>
+                    <label className="text-sm font-medium block mb-2">Quantity</label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center border rounded-md">
+                        <button
+                          onClick={decrementQuantity}
+                          className="px-3 py-1 hover:bg-secondary"
+                        >
+                          -
+                        </button>
+                        <span className="px-3">{quantity}</span>
+                        <button
+                          onClick={incrementQuantity}
+                          className="px-3 py-1 hover:bg-secondary"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
-              
-              {/* Quantity */}
-              <div>
-                <label className="text-sm font-medium block mb-2">Quantity</label>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center border rounded-md">
-                    <button
-                      onClick={decrementQuantity}
-                      className="px-3 py-1 hover:bg-secondary"
-                    >
-                      -
-                    </button>
-                    <span className="px-3">{quantity}</span>
-                    <button
-                      onClick={incrementQuantity}
-                      className="px-3 py-1 hover:bg-secondary"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-3 mt-6">
-              <Button onClick={handleAddToCart} className="w-full">
-                Add to Cart
-              </Button>
+              {user ? (
+                <Button onClick={handleAddToCart} className="w-full">
+                  Add to Cart
+                </Button>
+              ) : (
+                <Link to="/login" className="w-full">
+                  <Button variant="outline" className="w-full">
+                    <LogIn size={16} className="mr-1" /> Login
+                  </Button>
+                </Link>
+              )}
               <Link to={`/products/${product.id}`} className="w-full">
                 <Button variant="outline" className="w-full group">
                   View Details <ChevronRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />

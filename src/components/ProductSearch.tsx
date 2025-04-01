@@ -35,14 +35,16 @@ export const ProductSearch = ({
     setIsSearching(true);
     setCurrentPage(1);
     
-    dispatch(fetchProducts({
+    const searchParams = {
       searchQuery: searchQuery || undefined,
       category: activeCategory || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       showOnSale: showOnSale,
       minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
-    })).finally(() => {
+    };
+    
+    dispatch(fetchProducts(searchParams)).finally(() => {
       setIsSearching(false);
     });
   };

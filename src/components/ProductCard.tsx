@@ -1,11 +1,14 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Heart, Eye } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/hooks/useAuth';
 import { Product } from '@/types/product';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +20,7 @@ export const ProductCard = ({ product, featured = false, onQuickView }: ProductC
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // Calculate discount percentage if product is on sale
   const discountPercentage = product.old_price 
@@ -26,6 +30,16 @@ export const ProductCard = ({ product, featured = false, onQuickView }: ProductC
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to add items to your cart",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     addToCart(product);
     toast({
       title: "Product added",
@@ -36,6 +50,16 @@ export const ProductCard = ({ product, featured = false, onQuickView }: ProductC
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to add items to your wishlist",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     toggleWishlist(product);
   };
 
@@ -71,38 +95,43 @@ export const ProductCard = ({ product, featured = false, onQuickView }: ProductC
           </div>
         )}
         
-        {/* New Product Actions */}
-        <div className="absolute top-3 right-3 space-y-2 opacity-0 transform translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-          <button
-            onClick={handleWishlistToggle}
-            className={`p-2 rounded-full shadow-md ${
-              isInWishlist(product.id) 
-                ? 'bg-rose-50 text-rose-500' 
-                : 'bg-white text-primary hover:text-rose-500'
-            }`}
-            aria-label="Add to wishlist"
-          >
-            <Heart size={16} fill={isInWishlist(product.id) ? "currentColor" : "none"} />
-          </button>
-          
-          {onQuickView && (
-            <button
-              onClick={handleQuickView}
-              className="p-2 bg-white rounded-full shadow-md text-primary hover:text-primary/70"
-              aria-label="Quick view"
-            >
-              <Eye size={16} />
-            </button>
-          )}
-        </div>
+        {/* Only show actions for authenticated users */}
+        {user && (
+          <>
+            {/* Product Actions */}
+            <div className="absolute top-3 right-3 space-y-2 opacity-0 transform translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+              <button
+                onClick={handleWishlistToggle}
+                className={`p-2 rounded-full shadow-md ${
+                  isInWishlist(product.id) 
+                    ? 'bg-rose-50 text-rose-500' 
+                    : 'bg-white text-primary hover:text-rose-500'
+                }`}
+                aria-label="Add to wishlist"
+              >
+                <Heart size={16} fill={isInWishlist(product.id) ? "currentColor" : "none"} />
+              </button>
+              
+              {onQuickView && (
+                <button
+                  onClick={handleQuickView}
+                  className="p-2 bg-white rounded-full shadow-md text-primary hover:text-primary/70"
+                  aria-label="Quick view"
+                >
+                  <Eye size={16} />
+                </button>
+              )}
+            </div>
 
-        <button
-          onClick={handleAddToCart}
-          className="absolute bottom-3 right-3 p-2 bg-white rounded-full shadow-md opacity-0 transform translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
-          aria-label="Add to cart"
-        >
-          <Plus size={16} className="text-primary" />
-        </button>
+            <button
+              onClick={handleAddToCart}
+              className="absolute bottom-3 right-3 p-2 bg-white rounded-full shadow-md opacity-0 transform translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
+              aria-label="Add to cart"
+            >
+              <Plus size={16} className="text-primary" />
+            </button>
+          </>
+        )}
       </div>
 
       <div className="p-4">
