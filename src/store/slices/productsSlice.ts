@@ -11,6 +11,9 @@ interface ProductsState {
   error: string | null;
   searchQuery: string;
   activeCategory: string | null;
+  priceRange: [number, number];
+  minPrice: number;
+  maxPrice: number;
 }
 
 const initialState: ProductsState = {
@@ -21,6 +24,9 @@ const initialState: ProductsState = {
   error: null,
   searchQuery: '',
   activeCategory: null,
+  priceRange: [0, 1000],
+  minPrice: 0,
+  maxPrice: 1000,
 };
 
 // Async thunks for backend operations
@@ -54,9 +60,23 @@ const productsSlice = createSlice({
     setActiveCategory: (state, action: PayloadAction<string | null>) => {
       state.activeCategory = action.payload;
     },
+    setPriceRange: (state, action: PayloadAction<[number, number]>) => {
+      state.priceRange = action.payload;
+      state.filteredProducts = state.products.filter(product => {
+        // Apply all active filters (category, price range, search)
+        const matchesCategory = !state.activeCategory || product.category === state.activeCategory;
+        const matchesPrice = product.price >= state.priceRange[0] && product.price <= state.priceRange[1];
+        const matchesSearch = !state.searchQuery || 
+          product.name.toLowerCase().includes(state.searchQuery.toLowerCase());
+        
+        return matchesCategory && matchesPrice && matchesSearch;
+      });
+    },
     clearFilters: (state) => {
       state.searchQuery = '';
       state.activeCategory = null;
+      state.priceRange = [state.minPrice, state.maxPrice];
+      state.filteredProducts = state.products;
     }
   },
   extraReducers: (builder) => {
@@ -73,6 +93,14 @@ const productsSlice = createSlice({
         // Extract unique categories
         const uniqueCategories = [...new Set(action.payload.map(product => product.category))];
         state.categories = uniqueCategories;
+        
+        // Calculate min and max prices for the range slider
+        if (action.payload.length > 0) {
+          const prices = action.payload.map(product => product.price);
+          state.minPrice = Math.floor(Math.min(...prices));
+          state.maxPrice = Math.ceil(Math.max(...prices));
+          state.priceRange = [state.minPrice, state.maxPrice];
+        }
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
@@ -85,5 +113,5 @@ const productsSlice = createSlice({
   },
 });
 
-export const { setSearchQuery, setActiveCategory, clearFilters } = productsSlice.actions;
+export const { setSearchQuery, setActiveCategory, setPriceRange, clearFilters } = productsSlice.actions;
 export default productsSlice.reducer;

@@ -18,7 +18,7 @@ const Products = () => {
   const { toast } = useToast();
   
   const dispatch = useAppDispatch();
-  const { products, loading, error } = useAppSelector(state => state.products);
+  const { filteredProducts, loading, error } = useAppSelector(state => state.products);
 
   // Fetch products on component mount
   useEffect(() => {
@@ -35,11 +35,11 @@ const Products = () => {
     }
   }, [error, toast]);
   
-  // Paginate products
+  // Paginate filtered products
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
     
   return (
     <div className="min-h-screen flex flex-col">

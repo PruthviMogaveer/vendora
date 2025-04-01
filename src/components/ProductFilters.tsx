@@ -2,8 +2,9 @@
 import React from 'react';
 import { Filter, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
 import { useAppDispatch, useAppSelector } from '@/hooks';
-import { setActiveCategory, clearFilters, fetchProducts } from '@/store/slices/productsSlice';
+import { setActiveCategory, clearFilters, fetchProducts, setPriceRange } from '@/store/slices/productsSlice';
 import { useCategories } from '@/hooks/useCategories';
 
 interface ProductFiltersProps {
@@ -14,7 +15,7 @@ export const ProductFilters = ({
   setCurrentPage,
 }: ProductFiltersProps) => {
   const dispatch = useAppDispatch();
-  const { activeCategory, searchQuery } = useAppSelector(state => state.products);
+  const { activeCategory, searchQuery, priceRange, minPrice, maxPrice } = useAppSelector(state => state.products);
   const { data: categories = [] } = useCategories();
   
   const handleCategoryChange = (category: string | null) => {
@@ -24,6 +25,11 @@ export const ProductFilters = ({
       searchQuery: searchQuery || undefined, 
       category: category || undefined 
     }));
+  };
+
+  const handlePriceRangeChange = (values: number[]) => {
+    dispatch(setPriceRange([values[0], values[1]]));
+    setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
@@ -68,6 +74,27 @@ export const ProductFilters = ({
               {category.name}
             </button>
           ))}
+        </div>
+      </div>
+      
+      <Separator className="mb-4" />
+      
+      <div className="mb-6">
+        <h3 className="text-sm font-medium mb-3">Price Range</h3>
+        <div className="px-2">
+          <Slider
+            defaultValue={[minPrice, maxPrice]}
+            value={priceRange}
+            min={minPrice}
+            max={maxPrice}
+            step={1}
+            onValueChange={handlePriceRangeChange}
+            className="mb-6"
+          />
+          <div className="flex justify-between text-sm">
+            <span>${priceRange[0]}</span>
+            <span>${priceRange[1]}</span>
+          </div>
         </div>
       </div>
       
