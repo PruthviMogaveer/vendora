@@ -18,7 +18,13 @@ export const ProductSearch = ({
   setCurrentPage,
 }: ProductSearchProps) => {
   const dispatch = useAppDispatch();
-  const { searchQuery, activeCategory } = useAppSelector(state => state.products);
+  const { 
+    searchQuery, 
+    activeCategory, 
+    priceRange, 
+    showOnSale, 
+    minDiscountPercentage 
+  } = useAppSelector(state => state.products);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchQuery(e.target.value));
@@ -31,7 +37,11 @@ export const ProductSearch = ({
     
     dispatch(fetchProducts({
       searchQuery: searchQuery || undefined,
-      category: activeCategory || undefined
+      category: activeCategory || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale: showOnSale,
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
     })).finally(() => {
       setIsSearching(false);
     });

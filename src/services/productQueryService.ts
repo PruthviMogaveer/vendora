@@ -69,18 +69,60 @@ export const getDeals = async (): Promise<Product[]> => {
   return data || [];
 };
 
-export const getProducts = async (searchQuery?: string, category?: string): Promise<Product[]> => {
+export const getProducts = async (filters?: {
+  searchQuery?: string, 
+  category?: string,
+  minPrice?: number,
+  maxPrice?: number,
+  showOnSale?: boolean,
+  minDiscountPercentage?: number
+}): Promise<Product[]> => {
   let query = supabase.from('products').select('*');
   
-  if (searchQuery) {
-    query = query.ilike('name', `%${searchQuery}%`);
+  // Apply search filter
+  if (filters?.searchQuery) {
+    query = query.ilike('name', `%${filters.searchQuery}%`);
   }
   
-  if (category) {
-    query = query.eq('category', category);
+  // Apply category filter
+  if (filters?.category) {
+    query = query.eq('category', filters.category);
   }
   
-  const { data, error } = await query.limit(20);
+  // Apply price range filter
+  if (filters?.minPrice !== undefined) {
+    query = query.gte('price', filters.minPrice);
+  }
+  
+  if (filters?.maxPrice !== undefined) {
+    query = query.lte('price', filters.maxPrice);
+  }
+  
+  // Apply sale filters
+  if (filters?.showOnSale) {
+    query = query.not('old_price', 'is', null);
+    
+    // If minimum discount percentage is specified
+    if (filters.minDiscountPercentage && filters.minDiscountPercentage > 0) {
+      // We can't directly filter by discount percentage in the database,
+      // so we'll fetch all on-sale products and filter them in memory
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching products:', error);
+        return [];
+      }
+      
+      // Calculate discount percentage for each product and filter accordingly
+      return (data || []).filter(product => {
+        if (!product.old_price || product.old_price <= product.price) return false;
+        const discountPercentage = Math.round(((product.old_price - product.price) / product.old_price) * 100);
+        return discountPercentage >= filters.minDiscountPercentage;
+      });
+    }
+  }
+  
+  const { data, error } = await query.limit(50);
   
   if (error) {
     console.error('Error fetching products:', error);

@@ -1,6 +1,6 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { getProducts, getFeaturedProducts, getProductsByCategory } from '@/services/productService';
+import { getProducts, getFeaturedProducts } from '@/services/productService';
 import { Product } from '@/types/product';
 
 interface ProductsState {
@@ -38,12 +38,27 @@ export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
   async ({ 
     searchQuery, 
-    category 
+    category,
+    minPrice,
+    maxPrice,
+    showOnSale,
+    minDiscountPercentage
   }: { 
     searchQuery?: string; 
     category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    showOnSale?: boolean;
+    minDiscountPercentage?: number;
   }) => {
-    return await getProducts(searchQuery, category);
+    return await getProducts({ 
+      searchQuery, 
+      category,
+      minPrice,
+      maxPrice,
+      showOnSale,
+      minDiscountPercentage
+    });
   }
 );
 
@@ -54,43 +69,13 @@ export const fetchFeaturedProducts = createAsyncThunk(
   }
 );
 
-// Helper function to calculate discount percentage
-const getDiscountPercentage = (product: Product): number => {
-  if (!product.old_price || product.old_price <= product.price) return 0;
-  return Math.round(((product.old_price - product.price) / product.old_price) * 100);
-};
-
-// Helper function to apply all filters
-const applyFilters = (state: ProductsState) => {
-  state.filteredProducts = state.products.filter(product => {
-    // Match category
-    const matchesCategory = !state.activeCategory || product.category === state.activeCategory;
-    
-    // Match price range
-    const matchesPrice = product.price >= state.priceRange[0] && product.price <= state.priceRange[1];
-    
-    // Match search query
-    const matchesSearch = !state.searchQuery || 
-      product.name.toLowerCase().includes(state.searchQuery.toLowerCase());
-    
-    // Match sale filter
-    let matchesSale = true;
-    if (state.showOnSale) {
-      const discountPercentage = getDiscountPercentage(product);
-      matchesSale = discountPercentage >= state.minDiscountPercentage;
-    }
-    
-    return matchesCategory && matchesPrice && matchesSearch && matchesSale;
-  });
-};
-
 const productsSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
-      applyFilters(state);
+      // Filtering will now be done by fetchProducts
     },
     setActiveCategory: (state, action: PayloadAction<string | null>) => {
       state.activeCategory = action.payload;
@@ -98,15 +83,15 @@ const productsSlice = createSlice({
     },
     setPriceRange: (state, action: PayloadAction<[number, number]>) => {
       state.priceRange = action.payload;
-      applyFilters(state);
+      // Filtering will be done by fetchProducts
     },
     setShowOnSale: (state, action: PayloadAction<boolean>) => {
       state.showOnSale = action.payload;
-      applyFilters(state);
+      // Filtering will be done by fetchProducts
     },
     setMinDiscountPercentage: (state, action: PayloadAction<number>) => {
       state.minDiscountPercentage = action.payload;
-      applyFilters(state);
+      // Filtering will be done by fetchProducts
     },
     clearFilters: (state) => {
       state.searchQuery = '';
@@ -126,9 +111,7 @@ const productsSlice = createSlice({
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
         state.products = action.payload;
-        
-        // Apply all active filters
-        applyFilters(state);
+        state.filteredProducts = action.payload;
         
         // Extract unique categories
         const uniqueCategories = [...new Set(action.payload.map(product => product.category))];
@@ -139,7 +122,11 @@ const productsSlice = createSlice({
           const prices = action.payload.map(product => product.price);
           state.minPrice = Math.floor(Math.min(...prices));
           state.maxPrice = Math.ceil(Math.max(...prices));
-          state.priceRange = [state.minPrice, state.maxPrice];
+          
+          // Only update price range if it's the initial fetch
+          if (state.priceRange[0] === 0 && state.priceRange[1] === 1000) {
+            state.priceRange = [state.minPrice, state.maxPrice];
+          }
         }
       })
       .addCase(fetchProducts.rejected, (state, action) => {

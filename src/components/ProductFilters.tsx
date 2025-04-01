@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Filter, X, BadgePercent, Percent } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
@@ -37,25 +37,61 @@ export const ProductFilters = ({
   const handleCategoryChange = (category: string | null) => {
     dispatch(setActiveCategory(category));
     setCurrentPage(1);
+    
+    // Apply all filters when category changes
     dispatch(fetchProducts({ 
       searchQuery: searchQuery || undefined, 
-      category: category || undefined 
+      category: category || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale: showOnSale,
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
     }));
   };
 
   const handlePriceRangeChange = (values: number[]) => {
     dispatch(setPriceRange([values[0], values[1]]));
     setCurrentPage(1);
+    
+    // Apply all filters when price range changes
+    dispatch(fetchProducts({ 
+      searchQuery: searchQuery || undefined, 
+      category: activeCategory || undefined,
+      minPrice: values[0],
+      maxPrice: values[1],
+      showOnSale: showOnSale,
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
+    }));
   };
 
   const handleOnSaleChange = (checked: boolean) => {
     dispatch(setShowOnSale(checked));
     setCurrentPage(1);
+    
+    // Apply all filters when on sale status changes
+    dispatch(fetchProducts({ 
+      searchQuery: searchQuery || undefined, 
+      category: activeCategory || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale: checked,
+      minDiscountPercentage: checked ? minDiscountPercentage : undefined
+    }));
   };
 
   const handleDiscountPercentageChange = (values: number[]) => {
     dispatch(setMinDiscountPercentage(values[0]));
     setCurrentPage(1);
+    
+    // Apply all filters when discount percentage changes
+    dispatch(fetchProducts({ 
+      searchQuery: searchQuery || undefined, 
+      category: activeCategory || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale: showOnSale,
+      minDiscountPercentage: values[0]
+    }));
   };
 
   const handleClearFilters = () => {

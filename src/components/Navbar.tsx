@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Heart, Store } from 'lucide-react';
+import { Menu, X, Heart, Store, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SearchBar } from './SearchBar';
 import { CartDrawer } from './CartDrawer';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -76,6 +77,25 @@ export const Navbar = () => {
             </Link>
             
             <CartDrawer />
+            
+            {/* Authentication buttons for desktop */}
+            {!user ? (
+              <div className="hidden md:flex items-center space-x-2">
+                <Link to="/login">
+                  <Button variant="outline" size="sm" className="flex items-center">
+                    <User size={16} className="mr-1" />
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/login">
+                  <Button size="sm">Sign Up</Button>
+                </Link>
+              </div>
+            ) : (
+              <Link to="/profile" className="hidden md:flex items-center p-2 hover:bg-secondary rounded-full transition-colors">
+                <User size={20} className="text-primary" />
+              </Link>
+            )}
             
             <button 
               className="md:hidden p-2 hover:bg-secondary rounded-full transition-colors"
