@@ -19,7 +19,7 @@ const VendorLogin = () => {
   
   return (
     <HomeLayout>
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-8 px-4">
         <h1 className="text-3xl font-bold text-center mb-6">Vendor Portal</h1>
         <p className="text-center text-muted-foreground mb-8">
           Sign in to your vendor account to manage your products and orders.
@@ -31,3 +31,4 @@ const VendorLogin = () => {
 };
 
 export default VendorLogin;
+

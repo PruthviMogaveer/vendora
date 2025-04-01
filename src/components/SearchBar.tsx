@@ -20,7 +20,7 @@ export const SearchBar = () => {
       <Input
         type="search"
         placeholder="Search..."
-        className="pl-8 pr-4 py-2"
+        className="pl-8 pr-4 py-2 h-9 text-sm"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />
@@ -28,3 +28,4 @@ export const SearchBar = () => {
     </form>
   );
 };
+

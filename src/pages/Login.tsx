@@ -14,7 +14,7 @@ const Login = () => {
   
   return (
     <HomeLayout>
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-8 px-4">
         <h1 className="text-3xl font-bold text-center mb-6">Account Access</h1>
         <p className="text-center text-muted-foreground mb-8">
           Sign in to your account to access all features, including checkout.
@@ -26,3 +26,4 @@ const Login = () => {
 };
 
 export default Login;
+
