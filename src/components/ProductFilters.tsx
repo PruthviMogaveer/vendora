@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { X, ChevronDown, ChevronUp } from 'lucide-react';
 import { 
   useAppSelector, 
   useAppDispatch 
@@ -20,6 +20,8 @@ import {
   fetchProducts
 } from '@/store/slices/productsSlice';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useCategories } from '@/hooks';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface ProductFiltersProps {
   setCurrentPage: (page: number) => void;
@@ -27,7 +29,7 @@ interface ProductFiltersProps {
 
 export const ProductFilters = ({ setCurrentPage }: ProductFiltersProps) => {
   const { 
-    categories,
+    categories: reduxCategories,
     activeCategory,
     priceRange,
     minPrice,
@@ -37,9 +39,16 @@ export const ProductFilters = ({ setCurrentPage }: ProductFiltersProps) => {
     searchQuery
   } = useAppSelector(state => state.products);
   
+  // Fetch all categories from the database
+  const { data: dbCategories = [], isLoading: isCategoriesLoading } = useCategories();
+  
+  // Merge categories from Redux and database
+  const allCategories = [...new Set([...reduxCategories, ...dbCategories.map(cat => cat.slug)])];
+  
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(true);
   
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -143,6 +152,22 @@ export const ProductFilters = ({ setCurrentPage }: ProductFiltersProps) => {
     priceRange[1] < maxPrice || 
     showOnSale;
   
+  // Group categories for better organization
+  const categoryGroups = {
+    electronics: ['electronics', 'phones', 'computers', 'accessories'],
+    clothing: ['clothing', 'men', 'women', 'kids', 'shoes'],
+    home: ['home', 'furniture', 'kitchen', 'decor'],
+    beauty: ['beauty', 'skincare', 'makeup', 'haircare'],
+    other: [] as string[]
+  };
+  
+  // Put any categories that don't fit into the predefined groups into "other"
+  allCategories.forEach(category => {
+    if (!Object.values(categoryGroups).flat().includes(category)) {
+      categoryGroups.other.push(category);
+    }
+  });
+  
   return (
     <Card className="sticky top-24">
       <CardHeader className="p-4 flex flex-row items-center justify-between">
@@ -161,25 +186,135 @@ export const ProductFilters = ({ setCurrentPage }: ProductFiltersProps) => {
       </CardHeader>
       
       <CardContent className="p-4 space-y-6">
-        {/* Categories */}
-        <div>
-          <h4 className="font-medium mb-2">Categories</h4>
-          <div className="flex flex-wrap gap-2">
-            {categories.map(category => (
-              <Badge 
-                key={category}
-                variant={activeCategory === category ? "default" : "outline"}
-                className="cursor-pointer capitalize"
-                onClick={() => handleCategoryClick(category)}
-              >
-                {category}
-              </Badge>
-            ))}
-            {categories.length === 0 && (
-              <p className="text-sm text-muted-foreground">No categories found</p>
-            )}
-          </div>
-        </div>
+        {/* Categories Accordion */}
+        <Accordion type="single" collapsible defaultValue="categories">
+          <AccordionItem value="categories" className="border-none">
+            <AccordionTrigger className="py-2 hover:no-underline">
+              <span className="font-medium">Categories</span>
+            </AccordionTrigger>
+            <AccordionContent>
+              {isCategoriesLoading ? (
+                <div className="flex gap-2 flex-wrap">
+                  {[1, 2, 3, 4].map(i => (
+                    <Badge key={i} variant="outline" className="bg-muted animate-pulse">
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {/* Electronics Category Group */}
+                  {categoryGroups.electronics.some(cat => allCategories.includes(cat)) && (
+                    <div className="mb-3">
+                      <h5 className="text-sm font-medium mb-2 text-muted-foreground">Electronics</h5>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {categoryGroups.electronics
+                          .filter(cat => allCategories.includes(cat))
+                          .map(category => (
+                            <Badge 
+                              key={category}
+                              variant={activeCategory === category ? "default" : "outline"}
+                              className="cursor-pointer capitalize"
+                              onClick={() => handleCategoryClick(category)}
+                            >
+                              {category}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Clothing Category Group */}
+                  {categoryGroups.clothing.some(cat => allCategories.includes(cat)) && (
+                    <div className="mb-3">
+                      <h5 className="text-sm font-medium mb-2 text-muted-foreground">Clothing</h5>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {categoryGroups.clothing
+                          .filter(cat => allCategories.includes(cat))
+                          .map(category => (
+                            <Badge 
+                              key={category}
+                              variant={activeCategory === category ? "default" : "outline"}
+                              className="cursor-pointer capitalize"
+                              onClick={() => handleCategoryClick(category)}
+                            >
+                              {category}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Home Category Group */}
+                  {categoryGroups.home.some(cat => allCategories.includes(cat)) && (
+                    <div className="mb-3">
+                      <h5 className="text-sm font-medium mb-2 text-muted-foreground">Home & Kitchen</h5>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {categoryGroups.home
+                          .filter(cat => allCategories.includes(cat))
+                          .map(category => (
+                            <Badge 
+                              key={category}
+                              variant={activeCategory === category ? "default" : "outline"}
+                              className="cursor-pointer capitalize"
+                              onClick={() => handleCategoryClick(category)}
+                            >
+                              {category}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Beauty Category Group */}
+                  {categoryGroups.beauty.some(cat => allCategories.includes(cat)) && (
+                    <div className="mb-3">
+                      <h5 className="text-sm font-medium mb-2 text-muted-foreground">Beauty</h5>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {categoryGroups.beauty
+                          .filter(cat => allCategories.includes(cat))
+                          .map(category => (
+                            <Badge 
+                              key={category}
+                              variant={activeCategory === category ? "default" : "outline"}
+                              className="cursor-pointer capitalize"
+                              onClick={() => handleCategoryClick(category)}
+                            >
+                              {category}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Other Categories */}
+                  {categoryGroups.other.length > 0 && (
+                    <div className="mb-2">
+                      <h5 className="text-sm font-medium mb-2 text-muted-foreground">Other</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {categoryGroups.other.map(category => (
+                          <Badge 
+                            key={category}
+                            variant={activeCategory === category ? "default" : "outline"}
+                            className="cursor-pointer capitalize"
+                            onClick={() => handleCategoryClick(category)}
+                          >
+                            {category}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Show message if no categories are available */}
+                  {allCategories.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No categories found</p>
+                  )}
+                </>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
         
         <Separator />
         
