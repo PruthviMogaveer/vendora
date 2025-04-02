@@ -5,17 +5,20 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCategories } from '@/hooks';
 
+// Default categories to use when none are found in the database
+const defaultCategories = [
+  { id: "1", name: 'Electronics', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'electronics' },
+  { id: "2", name: 'Clothing', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'clothing' },
+  { id: "3", name: 'Home & Kitchen', image: 'https://images.unsplash.com/photo-1556910096-6f5e72db6803?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'home' },
+  { id: "4", name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'beauty' },
+];
+
 export const CategorySection = () => {
   // Fetch categories from backend
-  const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
+  const { data: dbCategories = [], isLoading: isCategoriesLoading } = useCategories();
   
-  // Fallback to default categories if API call fails
-  const categoryGroups = categories.length > 0 ? categories : [
-    { id: "1", name: 'Electronics', image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'electronics' },
-    { id: "2", name: 'Clothing', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'clothing' },
-    { id: "3", name: 'Home & Kitchen', image: 'https://images.unsplash.com/photo-1556910096-6f5e72db6803?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'home' },
-    { id: "4", name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80', slug: 'beauty' },
-  ];
+  // Use database categories if available, otherwise use default categories
+  const categories = dbCategories.length > 0 ? dbCategories : defaultCategories;
   
   return (
     <section className="py-16 bg-secondary/30">
@@ -41,7 +44,7 @@ export const CategorySection = () => {
               </div>
             ))
           ) : (
-            categoryGroups.slice(0, 4).map((category, index) => (
+            categories.slice(0, 4).map((category, index) => (
               <Link 
                 key={category.id || index}
                 to={`/products?category=${category.slug}`}
@@ -53,6 +56,9 @@ export const CategorySection = () => {
                     src={category.image}
                     alt={category.name}
                     className="h-full w-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder.svg";
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60"></div>
                 </div>
