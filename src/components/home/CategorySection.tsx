@@ -20,6 +20,9 @@ export const CategorySection = () => {
   // Use database categories if available, otherwise use default categories
   const categories = dbCategories.length > 0 ? dbCategories : defaultCategories;
   
+  // Log for debugging
+  console.log('CategorySection rendering with categories:', categories);
+  
   return (
     <section className="py-16 bg-secondary/30">
       <div className="container mx-auto px-6 md:px-12">

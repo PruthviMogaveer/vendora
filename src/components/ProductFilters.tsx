@@ -1,211 +1,247 @@
-
-import React from 'react';
-import { Filter, X, BadgePercent, Percent } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { useAppDispatch, useAppSelector } from '@/hooks';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
+import { 
+  useAppSelector, 
+  useAppDispatch 
+} from '@/hooks';
 import { 
   setActiveCategory, 
-  clearFilters, 
-  fetchProducts, 
-  setPriceRange,
+  setPriceRange, 
   setShowOnSale,
-  setMinDiscountPercentage
+  setMinDiscountPercentage,
+  clearFilters,
+  fetchProducts
 } from '@/store/slices/productsSlice';
-import { useCategories } from '@/hooks/useCategories';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 interface ProductFiltersProps {
   setCurrentPage: (page: number) => void;
 }
 
-export const ProductFilters = ({
-  setCurrentPage,
-}: ProductFiltersProps) => {
-  const dispatch = useAppDispatch();
+export const ProductFilters = ({ setCurrentPage }: ProductFiltersProps) => {
   const { 
-    activeCategory, 
-    searchQuery, 
-    priceRange, 
-    minPrice, 
+    categories,
+    activeCategory,
+    priceRange,
+    minPrice,
     maxPrice,
     showOnSale,
-    minDiscountPercentage
+    minDiscountPercentage,
+    searchQuery
   } = useAppSelector(state => state.products);
-  const { data: categories = [] } = useCategories();
   
-  const handleCategoryChange = (category: string | null) => {
-    dispatch(setActiveCategory(category));
+  const dispatch = useAppDispatch();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && categoryParam !== activeCategory) {
+      dispatch(setActiveCategory(categoryParam));
+    }
+  }, [searchParams, dispatch, activeCategory]);
+  
+  const handleCategoryClick = (category: string) => {
+    // If clicking the already active category, clear it
+    const newCategory = category === activeCategory ? null : category;
+    dispatch(setActiveCategory(newCategory));
     setCurrentPage(1);
     
-    // Apply all filters when category changes
+    // Update URL query parameter without reloading the page
+    if (newCategory) {
+      // Keep other query parameters but update/add category
+      navigate({ 
+        search: searchQuery 
+          ? `?category=${newCategory}&search=${searchQuery}` 
+          : `?category=${newCategory}` 
+      }, { replace: true });
+    } else {
+      // Remove category parameter but keep others
+      navigate({ 
+        search: searchQuery ? `?search=${searchQuery}` : ''
+      }, { replace: true });
+    }
+    
+    // Fetch products with new filters
     dispatch(fetchProducts({ 
-      searchQuery: searchQuery || undefined, 
-      category: category || undefined,
+      category: newCategory || undefined,
+      searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
-      showOnSale: showOnSale,
+      showOnSale,
       minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
     }));
   };
-
-  const handlePriceRangeChange = (values: number[]) => {
-    dispatch(setPriceRange([values[0], values[1]]));
+  
+  const handlePriceChange = (value: number[]) => {
+    dispatch(setPriceRange([value[0], value[1]]));
+  };
+  
+  const handlePriceChangeCommit = () => {
     setCurrentPage(1);
     
-    // Apply all filters when price range changes
-    dispatch(fetchProducts({ 
-      searchQuery: searchQuery || undefined, 
+    // Fetch products with new price range
+    dispatch(fetchProducts({
       category: activeCategory || undefined,
-      minPrice: values[0],
-      maxPrice: values[1],
-      showOnSale: showOnSale,
+      searchQuery: searchQuery || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale,
       minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
     }));
   };
-
-  const handleOnSaleChange = (checked: boolean) => {
+  
+  const handleSaleToggle = (checked: boolean) => {
     dispatch(setShowOnSale(checked));
     setCurrentPage(1);
     
-    // Apply all filters when on sale status changes
-    dispatch(fetchProducts({ 
-      searchQuery: searchQuery || undefined, 
+    // Fetch products with updated sale filter
+    dispatch(fetchProducts({
       category: activeCategory || undefined,
+      searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       showOnSale: checked,
       minDiscountPercentage: checked ? minDiscountPercentage : undefined
     }));
   };
-
-  const handleDiscountPercentageChange = (values: number[]) => {
-    dispatch(setMinDiscountPercentage(values[0]));
+  
+  const handleDiscountChange = (value: number[]) => {
+    dispatch(setMinDiscountPercentage(value[0]));
     setCurrentPage(1);
     
-    // Apply all filters when discount percentage changes
-    dispatch(fetchProducts({ 
-      searchQuery: searchQuery || undefined, 
+    // Fetch products with updated discount percentage
+    dispatch(fetchProducts({
       category: activeCategory || undefined,
+      searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
-      showOnSale: showOnSale,
-      minDiscountPercentage: values[0]
+      showOnSale: true,
+      minDiscountPercentage: value[0]
     }));
   };
-
+  
   const handleClearFilters = () => {
     dispatch(clearFilters());
     setCurrentPage(1);
+    
+    // Clear URL parameters and fetch all products
+    navigate({ search: '' }, { replace: true });
     dispatch(fetchProducts({}));
   };
-
+  
+  const hasActiveFilters = activeCategory || 
+    priceRange[0] > minPrice || 
+    priceRange[1] < maxPrice || 
+    showOnSale;
+  
   return (
-    <div className="sticky top-24 bg-white rounded-lg border border-border p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-medium">Filters</h2>
-        <Filter size={16} />
-      </div>
-      
-      <Separator className="mb-4" />
-      
-      <div className="mb-6">
-        <h3 className="text-sm font-medium mb-3">Categories</h3>
-        <div className="space-y-2">
-          <button
-            onClick={() => handleCategoryChange(null)}
-            className={`text-sm w-full text-left px-2 py-1.5 rounded transition-colors ${
-              activeCategory === null
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-secondary'
-            }`}
+    <Card className="sticky top-24">
+      <CardHeader className="p-4 flex flex-row items-center justify-between">
+        <h3 className="font-medium text-lg">Filters</h3>
+        {hasActiveFilters && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 text-xs"
+            onClick={handleClearFilters}
           >
-            All Products
-          </button>
-          
-          {categories.map(category => (
-            <button
-              key={category.id}
-              onClick={() => handleCategoryChange(category.slug)}
-              className={`text-sm w-full text-left px-2 py-1.5 rounded capitalize transition-colors ${
-                activeCategory === category.slug
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-secondary'
-              }`}
-            >
-              {category.name}
-            </button>
-          ))}
+            <X className="h-3 w-3 mr-1" />
+            Clear All
+          </Button>
+        )}
+      </CardHeader>
+      
+      <CardContent className="p-4 space-y-6">
+        {/* Categories */}
+        <div>
+          <h4 className="font-medium mb-2">Categories</h4>
+          <div className="flex flex-wrap gap-2">
+            {categories.map(category => (
+              <Badge 
+                key={category}
+                variant={activeCategory === category ? "default" : "outline"}
+                className="cursor-pointer capitalize"
+                onClick={() => handleCategoryClick(category)}
+              >
+                {category}
+              </Badge>
+            ))}
+            {categories.length === 0 && (
+              <p className="text-sm text-muted-foreground">No categories found</p>
+            )}
+          </div>
         </div>
-      </div>
-      
-      <Separator className="mb-4" />
-      
-      <div className="mb-6">
-        <h3 className="text-sm font-medium mb-3">Price Range</h3>
-        <div className="px-2">
+        
+        <Separator />
+        
+        {/* Price Range */}
+        <div>
+          <div className="flex justify-between mb-2">
+            <h4 className="font-medium">Price Range</h4>
+            <span className="text-sm text-muted-foreground">
+              ${priceRange[0]} - ${priceRange[1]}
+            </span>
+          </div>
+          
           <Slider
             defaultValue={[minPrice, maxPrice]}
-            value={priceRange}
             min={minPrice}
             max={maxPrice}
             step={1}
-            onValueChange={handlePriceRangeChange}
-            className="mb-6"
-          />
-          <div className="flex justify-between text-sm">
-            <span>${priceRange[0]}</span>
-            <span>${priceRange[1]}</span>
-          </div>
-        </div>
-      </div>
-      
-      <Separator className="mb-4" />
-      
-      <div className="mb-6">
-        <h3 className="text-sm font-medium mb-3">Deals & Discounts</h3>
-        
-        <div className="flex items-center justify-between px-2 mb-4">
-          <div className="flex items-center gap-2">
-            <BadgePercent size={16} />
-            <span className="text-sm">On Sale Items</span>
-          </div>
-          <Switch 
-            checked={showOnSale} 
-            onCheckedChange={handleOnSaleChange}
+            value={priceRange}
+            onValueChange={handlePriceChange}
+            onValueCommit={handlePriceChangeCommit}
+            className="mb-2"
           />
         </div>
         
-        {showOnSale && (
-          <div className="px-2">
-            <p className="text-sm mb-2">Minimum Discount</p>
-            <Slider
-              defaultValue={[0]}
-              value={[minDiscountPercentage]}
-              min={0}
-              max={90}
-              step={5}
-              onValueChange={handleDiscountPercentageChange}
-              className="mb-2"
-            />
-            <div className="flex justify-between text-sm">
-              <span className="flex items-center">
-                <Percent size={14} className="mr-1" /> {minDiscountPercentage}
-              </span>
-              <span>90%</span>
+        <Separator />
+        
+        {/* Sale Items */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <h4 className="font-medium">On Sale</h4>
+              <p className="text-xs text-muted-foreground">
+                Show discounted items only
+              </p>
             </div>
+            <Switch
+              checked={showOnSale}
+              onCheckedChange={handleSaleToggle}
+            />
           </div>
-        )}
-      </div>
-      
-      <Separator className="mb-4" />
-      
-      <button
-        onClick={handleClearFilters}
-        className="text-sm w-full px-4 py-2 border border-input rounded-md hover:bg-secondary transition-colors"
-      >
-        Clear Filters
-      </button>
-    </div>
+          
+          {showOnSale && (
+            <div className="mt-4">
+              <div className="flex justify-between mb-2">
+                <Label>Minimum Discount</Label>
+                <span className="text-sm text-muted-foreground">
+                  {minDiscountPercentage}%
+                </span>
+              </div>
+              <Slider
+                defaultValue={[0]}
+                min={0}
+                max={75}
+                step={5}
+                value={[minDiscountPercentage]}
+                onValueChange={handleDiscountChange}
+                className="mb-2"
+              />
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
