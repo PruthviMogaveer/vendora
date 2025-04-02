@@ -53,6 +53,7 @@ export const CategorySection = () => {
                 to={`/products?category=${category.slug}`}
                 className="relative rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 group"
                 style={{ animationDelay: `${index * 0.1}s` }}
+                aria-label={`Browse ${category.name} category`}
               >
                 <div className="aspect-square overflow-hidden">
                   <img

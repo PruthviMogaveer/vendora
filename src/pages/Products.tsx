@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { SlidersHorizontal, X, BadgePercent } from 'lucide-react';
+import { SlidersHorizontal, X, BadgePercent, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ProductFilters } from '@/components/ProductFilters';
 import { ProductSearch } from '@/components/ProductSearch';
@@ -11,11 +11,13 @@ import { useAppDispatch, useAppSelector } from '@/hooks';
 import { fetchProducts, setActiveCategory } from '@/store/slices/productsSlice';
 import { Badge } from '@/components/ui/badge';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { getCategoryBySlug } from '@/services/categoryService';
 
 const Products = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [categoryName, setCategoryName] = useState<string | null>(null);
   const itemsPerPage = 9;
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -45,10 +47,29 @@ const Products = () => {
         minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
       }));
       
+      // Get the readable category name for display
+      const fetchCategoryName = async () => {
+        try {
+          const category = await getCategoryBySlug(categoryParam);
+          if (category) {
+            setCategoryName(category.name);
+          } else {
+            // If we can't find the category, at least capitalize the slug
+            setCategoryName(categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1));
+          }
+        } catch (error) {
+          console.error('Error fetching category name:', error);
+          // Fallback to capitalized slug
+          setCategoryName(categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1));
+        }
+      };
+      
+      fetchCategoryName();
       console.log('Filtering products by category:', categoryParam);
     } else if (!categoryParam && !activeCategory) {
       // If no category parameter and none is active, fetch all products
       dispatch(fetchProducts({}));
+      setCategoryName(null);
     }
   }, [dispatch, searchParams, activeCategory, showOnSale, minDiscountPercentage]);
 
@@ -76,13 +97,13 @@ const Products = () => {
         <div className="container mx-auto px-6 md:px-12">
           <div className="text-center mb-8 animate-slide-up">
             <h1 className="text-3xl md:text-4xl font-medium tracking-tight mb-3">
-              {activeCategory 
-                ? `${activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}` 
+              {categoryName 
+                ? `${categoryName} Products` 
                 : 'Our Collection'}
             </h1>
             <p className="text-primary/80 max-w-2xl mx-auto">
-              {activeCategory
-                ? `Browse our selection of ${activeCategory} products, designed with quality and value in mind.`
+              {categoryName
+                ? `Browse our selection of ${categoryName.toLowerCase()} products, designed with quality and value in mind.`
                 : 'Explore our curated selection of premium products, designed with attention to every detail and crafted with the finest materials.'}
             </p>
           </div>
@@ -100,7 +121,8 @@ const Products = () => {
           <div className="flex justify-center mb-6 animate-slide-up gap-2">
             {activeCategory && (
               <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
-                Category: {activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}
+                <Tag size={14} className="mr-1" />
+                Category: {categoryName || (activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1))}
               </Badge>
             )}
             
