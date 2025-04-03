@@ -3,53 +3,16 @@ import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { setShowOnSale, setMinDiscountPercentage, fetchProducts } from '@/store/slices/productsSlice';
+import { useAppSelector } from '@/hooks';
+import { useProductFilters } from '@/hooks/useProductFilters';
 
 interface OnSaleFilterProps {
   setCurrentPage: (page: number) => void;
 }
 
 export const OnSaleFilter: React.FC<OnSaleFilterProps> = ({ setCurrentPage }) => {
-  const { 
-    showOnSale, 
-    minDiscountPercentage, 
-    activeCategory, 
-    searchQuery, 
-    priceRange 
-  } = useAppSelector(state => state.products);
-  
-  const dispatch = useAppDispatch();
-
-  const handleSaleToggle = (checked: boolean) => {
-    dispatch(setShowOnSale(checked));
-    setCurrentPage(1);
-    
-    // Fetch products with updated sale filter
-    dispatch(fetchProducts({
-      category: activeCategory || undefined,
-      searchQuery: searchQuery || undefined,
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-      showOnSale: checked,
-      minDiscountPercentage: checked ? minDiscountPercentage : undefined
-    }));
-  };
-  
-  const handleDiscountChange = (value: number[]) => {
-    dispatch(setMinDiscountPercentage(value[0]));
-    setCurrentPage(1);
-    
-    // Fetch products with updated discount percentage
-    dispatch(fetchProducts({
-      category: activeCategory || undefined,
-      searchQuery: searchQuery || undefined,
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-      showOnSale: true,
-      minDiscountPercentage: value[0]
-    }));
-  };
+  const { showOnSale, minDiscountPercentage } = useAppSelector(state => state.products);
+  const { handleSaleToggle, handleDiscountChange } = useProductFilters({ setCurrentPage });
 
   return (
     <div>

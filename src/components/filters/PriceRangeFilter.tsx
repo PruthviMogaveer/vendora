@@ -1,43 +1,16 @@
 
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { setPriceRange, fetchProducts } from '@/store/slices/productsSlice';
+import { useAppSelector } from '@/hooks';
+import { useProductFilters } from '@/hooks/useProductFilters';
 
 interface PriceRangeFilterProps {
   setCurrentPage: (page: number) => void;
 }
 
 export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({ setCurrentPage }) => {
-  const { 
-    priceRange, 
-    minPrice, 
-    maxPrice, 
-    activeCategory, 
-    searchQuery, 
-    showOnSale, 
-    minDiscountPercentage 
-  } = useAppSelector(state => state.products);
-  
-  const dispatch = useAppDispatch();
-
-  const handlePriceChange = (value: number[]) => {
-    dispatch(setPriceRange([value[0], value[1]]));
-  };
-  
-  const handlePriceChangeCommit = () => {
-    setCurrentPage(1);
-    
-    // Fetch products with new price range
-    dispatch(fetchProducts({
-      category: activeCategory || undefined,
-      searchQuery: searchQuery || undefined,
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-      showOnSale,
-      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
-    }));
-  };
+  const { priceRange, minPrice, maxPrice } = useAppSelector(state => state.products);
+  const { handlePriceRangeChange, handlePriceRangeCommit } = useProductFilters({ setCurrentPage });
 
   return (
     <div>
@@ -54,8 +27,8 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({ setCurrentPa
         max={maxPrice}
         step={1}
         value={priceRange}
-        onValueChange={handlePriceChange}
-        onValueCommit={handlePriceChangeCommit}
+        onValueChange={handlePriceRangeChange}
+        onValueCommit={handlePriceRangeCommit}
         className="mb-2"
       />
     </div>

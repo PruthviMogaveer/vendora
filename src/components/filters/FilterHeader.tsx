@@ -2,39 +2,15 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { clearFilters, fetchProducts } from '@/store/slices/productsSlice';
-import { useNavigate } from 'react-router-dom';
+import { useAppSelector } from '@/hooks';
+import { useProductFilters } from '@/hooks/useProductFilters';
 
 interface FilterHeaderProps {
   setCurrentPage: (page: number) => void;
 }
 
 export const FilterHeader: React.FC<FilterHeaderProps> = ({ setCurrentPage }) => {
-  const { 
-    activeCategory, 
-    priceRange, 
-    minPrice, 
-    maxPrice, 
-    showOnSale 
-  } = useAppSelector(state => state.products);
-  
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  
-  const hasActiveFilters = activeCategory || 
-    priceRange[0] > minPrice || 
-    priceRange[1] < maxPrice || 
-    showOnSale;
-  
-  const handleClearFilters = () => {
-    dispatch(clearFilters());
-    setCurrentPage(1);
-    
-    // Clear URL parameters and fetch all products
-    navigate({ search: '' }, { replace: true });
-    dispatch(fetchProducts({}));
-  };
+  const { hasActiveFilters, handleClearFilters } = useProductFilters({ setCurrentPage });
 
   return (
     <div className="p-4 flex flex-row items-center justify-between">
