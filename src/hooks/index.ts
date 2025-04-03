@@ -7,3 +7,4 @@ export { useProductRatings } from './useProductRatings';
 export { useCategories } from './useCategories';
 export { useAuth } from './useAuth';
 export { useProductFilters } from './useProductFilters';
+export { useMobileMenu } from './useMobileMenu';
