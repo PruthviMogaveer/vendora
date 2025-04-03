@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Heart, Store, User, LogIn, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,16 +9,15 @@ import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
-import { useMobileMenu } from '@/hooks/useMobileMenu';
 
 export const Navbar = () => {
-  const [isScrolled, setIsScrolled] = React.useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { wishlistItems } = useWishlist();
   const { user } = useAuth();
   const { cartItems } = useCart();
-  const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useMobileMenu();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -26,6 +25,18 @@ export const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <header className={cn(
@@ -104,7 +115,7 @@ export const Navbar = () => {
             
             <button 
               className="md:hidden p-2 hover:bg-secondary rounded-full transition-colors"
-              onClick={toggleMobileMenu}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (
@@ -121,41 +132,32 @@ export const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 pt-16 bg-white z-40 animate-slide-in-right overflow-y-auto">
           <div className="container mx-auto px-6 py-8">
-            {/* Close button in top right corner */}
-            <button 
-              onClick={closeMobileMenu}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-secondary transition-colors"
-              aria-label="Close menu"
-            >
-              <X size={24} className="text-primary" />
-            </button>
-            
             <nav className="flex flex-col space-y-6">
               <Link 
                 to="/" 
                 className="text-lg text-primary hover:text-primary/80 transition-colors"
-                onClick={closeMobileMenu}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Home
               </Link>
               <Link 
                 to="/products" 
                 className="text-lg text-primary hover:text-primary/80 transition-colors"
-                onClick={closeMobileMenu}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Products
               </Link>
               <Link 
                 to="/categories" 
                 className="text-lg text-primary hover:text-primary/80 transition-colors"
-                onClick={closeMobileMenu}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Categories
               </Link>
               <Link 
                 to="/deals" 
                 className="text-lg text-primary hover:text-primary/80 transition-colors"
-                onClick={closeMobileMenu}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Deals
               </Link>
@@ -165,7 +167,7 @@ export const Navbar = () => {
                   <Link 
                     to="/wishlist" 
                     className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                    onClick={closeMobileMenu}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Heart size={18} className="mr-2" />
                     Wishlist
@@ -173,7 +175,7 @@ export const Navbar = () => {
                   <Link 
                     to="/profile" 
                     className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                    onClick={closeMobileMenu}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <User size={18} className="mr-2" />
                     My Account
@@ -181,7 +183,7 @@ export const Navbar = () => {
                   <Link 
                     to="/cart" 
                     className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                    onClick={closeMobileMenu}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <ShoppingBag size={18} className="mr-2" />
                     Cart
@@ -190,7 +192,7 @@ export const Navbar = () => {
                     <Link 
                       to="/vendor/dashboard" 
                       className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                      onClick={closeMobileMenu}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <Store size={18} className="mr-2" />
                       Vendor Dashboard
@@ -202,7 +204,7 @@ export const Navbar = () => {
                   <Link 
                     to="/login" 
                     className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                    onClick={closeMobileMenu}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <LogIn size={18} className="mr-2" />
                     Login
@@ -210,7 +212,7 @@ export const Navbar = () => {
                   <Link 
                     to="/login?tab=register" 
                     className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                    onClick={closeMobileMenu}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <User size={18} className="mr-2" />
                     Sign Up
@@ -218,7 +220,7 @@ export const Navbar = () => {
                   <Link 
                     to="/vendor/login" 
                     className="text-lg text-primary hover:text-primary/80 transition-colors flex items-center"
-                    onClick={closeMobileMenu}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Store size={18} className="mr-2" />
                     Sell on Vendora

@@ -1,165 +1,175 @@
-
-import { useCallback, useEffect, useMemo } from 'react';
-import { useAppDispatch, useAppSelector } from './index';
+import { useAppDispatch, useAppSelector } from '@/hooks';
 import { 
-  setSearchQuery, 
-  setActiveCategories, 
-  toggleCategory, 
+  setActiveCategory, 
   setPriceRange, 
   setShowOnSale, 
   setMinDiscountPercentage,
-  clearFilters, 
-  fetchProducts 
+  setSearchQuery,
+  clearFilters,
+  fetchProducts
 } from '@/store/slices/productsSlice';
+import { useNavigate } from 'react-router-dom';
 
-export const useProductFilters = (options?: { setCurrentPage?: (page: number) => void }) => {
-  const dispatch = useAppDispatch();
+interface UseProductFiltersProps {
+  setCurrentPage: (page: number) => void;
+}
+
+interface FilterOptions {
+  searchQuery?: string;
+  category?: string | null;
+  minPrice?: number;
+  maxPrice?: number;
+  showOnSale?: boolean;
+  minDiscountPercentage?: number;
+}
+
+export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) => {
   const { 
-    searchQuery, 
-    activeCategories, 
+    activeCategory, 
     priceRange, 
-    showOnSale, 
-    minDiscountPercentage, 
-    categories, 
-    products, 
-    filteredProducts, 
-    loading,
-    minPrice,
-    maxPrice
+    minPrice, 
+    maxPrice, 
+    showOnSale,
+    minDiscountPercentage,
+    searchQuery
   } = useAppSelector(state => state.products);
-
-  // Reset page when filters change if setCurrentPage is provided
-  useEffect(() => {
-    if (options?.setCurrentPage) {
-      options.setCurrentPage(1);
+  
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  
+  const handleCategoryChange = (category: string) => {
+    // If clicking the already active category, clear it
+    const newCategory = category === activeCategory ? null : category;
+    dispatch(setActiveCategory(newCategory));
+    setCurrentPage(1);
+    
+    // Update URL query parameter without reloading the page
+    if (newCategory) {
+      // Keep other query parameters but update/add category
+      navigate({ 
+        search: searchQuery 
+          ? `?category=${newCategory}&search=${searchQuery}` 
+          : `?category=${newCategory}` 
+      }, { replace: true });
+    } else {
+      // Remove category parameter but keep others
+      navigate({ 
+        search: searchQuery ? `?search=${searchQuery}` : ''
+      }, { replace: true });
     }
-  }, [searchQuery, activeCategories, priceRange, showOnSale, minDiscountPercentage, options]);
-
-  // Apply filters when they change
-  useEffect(() => {
-    applyFilters();
-  }, [searchQuery, activeCategories, priceRange, showOnSale, minDiscountPercentage]);
-
-  // Check if there are any active filters
-  const hasActiveFilters = useMemo(() => {
-    return (
-      searchQuery !== '' || 
-      activeCategories.length > 0 || 
-      priceRange[0] !== minPrice || 
-      priceRange[1] !== maxPrice || 
-      showOnSale || 
-      minDiscountPercentage > 0
-    );
-  }, [searchQuery, activeCategories, priceRange, showOnSale, minDiscountPercentage, minPrice, maxPrice]);
-
-  // Filter handler functions
-  const handleSearchQueryChange = useCallback((query: string) => {
-    dispatch(setSearchQuery(query));
-  }, [dispatch]);
-
-  // Handler for search input change
-  const handleSearchChange = useCallback((query: string) => {
-    dispatch(setSearchQuery(query));
-  }, [dispatch]);
-
-  // Handler for search form submission
-  const handleSearchSubmit = useCallback(() => {
-    applyFilters();
-  }, [dispatch, searchQuery]);
-
-  const handleCategoryToggle = useCallback((category: string) => {
-    dispatch(toggleCategory(category));
-    // We need to ensure applyFilters gets called after toggling the category
-    // to fetch the updated product list
-    setTimeout(() => applyFilters(), 0);
-  }, [dispatch]);
-
-  const handleSetCategories = useCallback((categories: string[]) => {
-    dispatch(setActiveCategories(categories));
-    // Ensure filters are applied after setting categories
-    setTimeout(() => applyFilters(), 0);
-  }, [dispatch]);
-
-  const handlePriceRangeChange = useCallback((range: [number, number]) => {
-    dispatch(setPriceRange(range));
-  }, [dispatch]);
-
-  const handlePriceRangeCommit = useCallback(() => {
-    applyFilters();
-  }, [dispatch, priceRange]);
-
-  const handleShowOnSaleChange = useCallback((value: boolean) => {
-    dispatch(setShowOnSale(value));
-  }, [dispatch]);
-
-  // Handler for on-sale toggle
-  const handleSaleToggle = useCallback((checked: boolean) => {
-    dispatch(setShowOnSale(checked));
-  }, [dispatch]);
-
-  const handleMinDiscountChange = useCallback((value: number) => {
-    dispatch(setMinDiscountPercentage(value));
-  }, [dispatch]);
-
-  // Handler for discount percentage change
-  const handleDiscountChange = useCallback((values: number[]) => {
-    dispatch(setMinDiscountPercentage(values[0]));
-  }, [dispatch]);
-
-  const handleClearFilters = useCallback(() => {
-    dispatch(clearFilters());
-    applyFilters();
-    if (options?.setCurrentPage) {
-      options.setCurrentPage(1);
-    }
-  }, [dispatch, options]);
-
-  // Apply all filters at once
-  const applyFilters = useCallback(() => {
-    dispatch(fetchProducts({
-      searchQuery,
-      categories: activeCategories,
+    
+    applyFilters({
+      category: newCategory,
+      searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       showOnSale,
       minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
-    }));
-  }, [dispatch, searchQuery, activeCategories, priceRange, showOnSale, minDiscountPercentage]);
-
-  // Check if a category is active
-  const isCategoryActive = useCallback((category: string) => {
-    return activeCategories.includes(category);
-  }, [activeCategories]);
-
+    });
+  };
+  
+  const handlePriceRangeChange = (value: number[]) => {
+    dispatch(setPriceRange([value[0], value[1]]));
+  };
+  
+  const handlePriceRangeCommit = () => {
+    setCurrentPage(1);
+    
+    applyFilters({
+      category: activeCategory || undefined,
+      searchQuery: searchQuery || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale,
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
+    });
+  };
+  
+  const handleSaleToggle = (checked: boolean) => {
+    dispatch(setShowOnSale(checked));
+    setCurrentPage(1);
+    
+    applyFilters({
+      category: activeCategory || undefined,
+      searchQuery: searchQuery || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale: checked,
+      minDiscountPercentage: checked ? minDiscountPercentage : undefined
+    });
+  };
+  
+  const handleDiscountChange = (value: number[]) => {
+    dispatch(setMinDiscountPercentage(value[0]));
+    setCurrentPage(1);
+    
+    applyFilters({
+      category: activeCategory || undefined,
+      searchQuery: searchQuery || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale: true,
+      minDiscountPercentage: value[0]
+    });
+  };
+  
+  const handleSearchChange = (value: string) => {
+    dispatch(setSearchQuery(value));
+  };
+  
+  const handleSearchSubmit = () => {
+    setCurrentPage(1);
+    
+    applyFilters({
+      category: activeCategory || undefined,
+      searchQuery: searchQuery || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale,
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
+    });
+  };
+  
+  const handleClearFilters = () => {
+    dispatch(clearFilters());
+    setCurrentPage(1);
+    
+    // Clear URL parameters and fetch all products
+    navigate({ search: '' }, { replace: true });
+    dispatch(fetchProducts({}));
+  };
+  
+  const applyFilters = (options: FilterOptions) => {
+    dispatch(fetchProducts(options));
+  };
+  
+  // Utility to check if any filters are active
+  const hasActiveFilters = 
+    !!activeCategory || 
+    priceRange[0] > minPrice || 
+    priceRange[1] < maxPrice || 
+    showOnSale;
+  
   return {
     // State
-    searchQuery,
-    activeCategories,
+    activeCategory,
     priceRange,
-    showOnSale,
-    minDiscountPercentage,
-    categories,
-    products,
-    filteredProducts,
-    loading,
     minPrice,
     maxPrice,
+    showOnSale,
+    minDiscountPercentage,
+    searchQuery,
     hasActiveFilters,
     
     // Actions
-    handleSearchQueryChange,
-    handleSearchChange,
-    handleSearchSubmit,
-    handleCategoryToggle,
-    handleSetCategories,
+    handleCategoryChange,
     handlePriceRangeChange,
     handlePriceRangeCommit,
-    handleShowOnSaleChange,
     handleSaleToggle,
-    handleMinDiscountChange,
     handleDiscountChange,
+    handleSearchChange,
+    handleSearchSubmit,
     handleClearFilters,
-    applyFilters,
-    isCategoryActive
+    applyFilters
   };
 };

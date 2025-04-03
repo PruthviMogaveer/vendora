@@ -11,8 +11,8 @@ interface CategoryFilterProps {
 }
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }) => {
-  const { activeCategories } = useAppSelector(state => state.products);
-  const { handleCategoryToggle, isCategoryActive } = useProductFilters({ setCurrentPage });
+  const { activeCategory } = useAppSelector(state => state.products);
+  const { handleCategoryChange } = useProductFilters({ setCurrentPage });
   
   // Fetch categories from Redux store
   const { categories: reduxCategories } = useAppSelector(state => state.products);
@@ -66,9 +66,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                       .map(category => (
                         <Badge 
                           key={category}
-                          variant={isCategoryActive(category) ? "default" : "outline"}
+                          variant={activeCategory === category ? "default" : "outline"}
                           className="cursor-pointer capitalize"
-                          onClick={() => handleCategoryToggle(category)}
+                          onClick={() => handleCategoryChange(category)}
                         >
                           {category}
                         </Badge>
@@ -87,9 +87,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                       .map(category => (
                         <Badge 
                           key={category}
-                          variant={isCategoryActive(category) ? "default" : "outline"}
+                          variant={activeCategory === category ? "default" : "outline"}
                           className="cursor-pointer capitalize"
-                          onClick={() => handleCategoryToggle(category)}
+                          onClick={() => handleCategoryChange(category)}
                         >
                           {category}
                         </Badge>
@@ -108,9 +108,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                       .map(category => (
                         <Badge 
                           key={category}
-                          variant={isCategoryActive(category) ? "default" : "outline"}
+                          variant={activeCategory === category ? "default" : "outline"}
                           className="cursor-pointer capitalize"
-                          onClick={() => handleCategoryToggle(category)}
+                          onClick={() => handleCategoryChange(category)}
                         >
                           {category}
                         </Badge>
@@ -129,9 +129,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                       .map(category => (
                         <Badge 
                           key={category}
-                          variant={isCategoryActive(category) ? "default" : "outline"}
+                          variant={activeCategory === category ? "default" : "outline"}
                           className="cursor-pointer capitalize"
-                          onClick={() => handleCategoryToggle(category)}
+                          onClick={() => handleCategoryChange(category)}
                         >
                           {category}
                         </Badge>
@@ -148,9 +148,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                     {categoryGroups.other.map(category => (
                       <Badge 
                         key={category}
-                        variant={isCategoryActive(category) ? "default" : "outline"}
+                        variant={activeCategory === category ? "default" : "outline"}
                         className="cursor-pointer capitalize"
-                        onClick={() => handleCategoryToggle(category)}
+                        onClick={() => handleCategoryChange(category)}
                       >
                         {category}
                       </Badge>

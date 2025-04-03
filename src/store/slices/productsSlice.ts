@@ -10,7 +10,7 @@ interface ProductsState {
   loading: boolean;
   error: string | null;
   searchQuery: string;
-  activeCategories: string[];
+  activeCategory: string | null;
   priceRange: [number, number];
   minPrice: number;
   maxPrice: number;
@@ -25,7 +25,7 @@ const initialState: ProductsState = {
   loading: false,
   error: null,
   searchQuery: '',
-  activeCategories: [],
+  activeCategory: null,
   priceRange: [0, 1000],
   minPrice: 0,
   maxPrice: 1000,
@@ -38,14 +38,14 @@ export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
   async ({ 
     searchQuery, 
-    categories,
+    category,
     minPrice,
     maxPrice,
     showOnSale,
     minDiscountPercentage
   }: { 
     searchQuery?: string; 
-    categories?: string[];
+    category?: string;
     minPrice?: number;
     maxPrice?: number;
     showOnSale?: boolean;
@@ -53,7 +53,7 @@ export const fetchProducts = createAsyncThunk(
   }) => {
     return await getProducts({ 
       searchQuery, 
-      categories,
+      category,
       minPrice,
       maxPrice,
       showOnSale,
@@ -75,30 +75,27 @@ const productsSlice = createSlice({
   reducers: {
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
+      // Filtering will now be done by fetchProducts
     },
-    setActiveCategories: (state, action: PayloadAction<string[]>) => {
-      state.activeCategories = action.payload;
-    },
-    toggleCategory: (state, action: PayloadAction<string>) => {
-      const category = action.payload;
-      if (state.activeCategories.includes(category)) {
-        state.activeCategories = state.activeCategories.filter(cat => cat !== category);
-      } else {
-        state.activeCategories = [...state.activeCategories, category];
-      }
+    setActiveCategory: (state, action: PayloadAction<string | null>) => {
+      state.activeCategory = action.payload;
+      // Filtering will be done by fetchProducts
     },
     setPriceRange: (state, action: PayloadAction<[number, number]>) => {
       state.priceRange = action.payload;
+      // Filtering will be done by fetchProducts
     },
     setShowOnSale: (state, action: PayloadAction<boolean>) => {
       state.showOnSale = action.payload;
+      // Filtering will be done by fetchProducts
     },
     setMinDiscountPercentage: (state, action: PayloadAction<number>) => {
       state.minDiscountPercentage = action.payload;
+      // Filtering will be done by fetchProducts
     },
     clearFilters: (state) => {
       state.searchQuery = '';
-      state.activeCategories = [];
+      state.activeCategory = null;
       state.priceRange = [state.minPrice, state.maxPrice];
       state.showOnSale = false;
       state.minDiscountPercentage = 0;
@@ -145,8 +142,7 @@ const productsSlice = createSlice({
 
 export const { 
   setSearchQuery, 
-  setActiveCategories,
-  toggleCategory, 
+  setActiveCategory, 
   setPriceRange, 
   setShowOnSale,
   setMinDiscountPercentage,
