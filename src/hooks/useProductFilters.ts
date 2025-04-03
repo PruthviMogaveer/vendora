@@ -69,10 +69,15 @@ export const useProductFilters = (options?: { setCurrentPage?: (page: number) =>
 
   const handleCategoryToggle = useCallback((category: string) => {
     dispatch(toggleCategory(category));
+    // We need to ensure applyFilters gets called after toggling the category
+    // to fetch the updated product list
+    setTimeout(() => applyFilters(), 0);
   }, [dispatch]);
 
   const handleSetCategories = useCallback((categories: string[]) => {
     dispatch(setActiveCategories(categories));
+    // Ensure filters are applied after setting categories
+    setTimeout(() => applyFilters(), 0);
   }, [dispatch]);
 
   const handlePriceRangeChange = useCallback((range: [number, number]) => {

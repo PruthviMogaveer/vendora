@@ -84,7 +84,7 @@ const productsSlice = createSlice({
       if (state.activeCategories.includes(category)) {
         state.activeCategories = state.activeCategories.filter(cat => cat !== category);
       } else {
-        state.activeCategories.push(category);
+        state.activeCategories = [...state.activeCategories, category];
       }
     },
     setPriceRange: (state, action: PayloadAction<[number, number]>) => {
