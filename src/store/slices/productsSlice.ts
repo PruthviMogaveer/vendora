@@ -75,11 +75,9 @@ const productsSlice = createSlice({
   reducers: {
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
-      // Filtering will now be done by fetchProducts
     },
     setActiveCategories: (state, action: PayloadAction<string[]>) => {
       state.activeCategories = action.payload;
-      // Filtering will be done by fetchProducts
     },
     toggleCategory: (state, action: PayloadAction<string>) => {
       const category = action.payload;
@@ -91,15 +89,12 @@ const productsSlice = createSlice({
     },
     setPriceRange: (state, action: PayloadAction<[number, number]>) => {
       state.priceRange = action.payload;
-      // Filtering will be done by fetchProducts
     },
     setShowOnSale: (state, action: PayloadAction<boolean>) => {
       state.showOnSale = action.payload;
-      // Filtering will be done by fetchProducts
     },
     setMinDiscountPercentage: (state, action: PayloadAction<number>) => {
       state.minDiscountPercentage = action.payload;
-      // Filtering will be done by fetchProducts
     },
     clearFilters: (state) => {
       state.searchQuery = '';
