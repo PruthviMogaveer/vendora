@@ -5,14 +5,20 @@ import { Heart, Store, User, LogIn, ShoppingBag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useMobileMenu } from '@/hooks';
-import { Sheet, SheetContent, SheetHeader } from '@/components/ui/sheet';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader 
+} from '@/components/ui/sheet';
 
 export const MobileNav = () => {
   const { isOpen, close } = useMobileMenu();
   const { user } = useAuth();
 
   return (
-    <Sheet open={isOpen} onOpenChange={(isOpen) => !isOpen && close()}>
+    <Sheet open={isOpen} onOpenChange={(open) => {
+      if (!open) close();
+    }}>
       <SheetContent side="left" className="w-[85%] sm:w-[350px] pt-14">
         <SheetHeader className="absolute top-4 right-4">
           <Button 
