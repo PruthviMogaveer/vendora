@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Heart, User, LogIn } from 'lucide-react';
+import { Menu, Heart, User, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SearchBar } from '../SearchBar';
 import { CartDrawer } from '../CartDrawer';
@@ -55,11 +55,7 @@ export const NavbarActions = () => {
         onClick={toggle}
         aria-label="Toggle menu"
       >
-        {isOpen ? (
-          <X size={20} className="text-primary" />
-        ) : (
-          <Menu size={20} className="text-primary" />
-        )}
+        <Menu size={20} className="text-primary" />
       </button>
     </div>
   );
