@@ -11,8 +11,8 @@ interface CategoryFilterProps {
 }
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }) => {
-  const { activeCategory } = useAppSelector(state => state.products);
-  const { handleCategoryChange } = useProductFilters({ setCurrentPage });
+  const { activeCategories } = useAppSelector(state => state.products);
+  const { handleCategoryToggle } = useProductFilters({ setCurrentPage });
   
   // Fetch categories from Redux store
   const { categories: reduxCategories } = useAppSelector(state => state.products);
@@ -66,9 +66,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                       .map(category => (
                         <Badge 
                           key={category}
-                          variant={activeCategory === category ? "default" : "outline"}
+                          variant={activeCategories.includes(category) ? "default" : "outline"}
                           className="cursor-pointer capitalize"
-                          onClick={() => handleCategoryChange(category)}
+                          onClick={() => handleCategoryToggle(category)}
                         >
                           {category}
                         </Badge>
@@ -87,9 +87,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                       .map(category => (
                         <Badge 
                           key={category}
-                          variant={activeCategory === category ? "default" : "outline"}
+                          variant={activeCategories.includes(category) ? "default" : "outline"}
                           className="cursor-pointer capitalize"
-                          onClick={() => handleCategoryChange(category)}
+                          onClick={() => handleCategoryToggle(category)}
                         >
                           {category}
                         </Badge>
@@ -108,9 +108,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                       .map(category => (
                         <Badge 
                           key={category}
-                          variant={activeCategory === category ? "default" : "outline"}
+                          variant={activeCategories.includes(category) ? "default" : "outline"}
                           className="cursor-pointer capitalize"
-                          onClick={() => handleCategoryChange(category)}
+                          onClick={() => handleCategoryToggle(category)}
                         >
                           {category}
                         </Badge>
@@ -129,9 +129,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                       .map(category => (
                         <Badge 
                           key={category}
-                          variant={activeCategory === category ? "default" : "outline"}
+                          variant={activeCategories.includes(category) ? "default" : "outline"}
                           className="cursor-pointer capitalize"
-                          onClick={() => handleCategoryChange(category)}
+                          onClick={() => handleCategoryToggle(category)}
                         >
                           {category}
                         </Badge>
@@ -148,9 +148,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({ setCurrentPage }
                     {categoryGroups.other.map(category => (
                       <Badge 
                         key={category}
-                        variant={activeCategory === category ? "default" : "outline"}
+                        variant={activeCategories.includes(category) ? "default" : "outline"}
                         className="cursor-pointer capitalize"
-                        onClick={() => handleCategoryChange(category)}
+                        onClick={() => handleCategoryToggle(category)}
                       >
                         {category}
                       </Badge>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -7,7 +8,7 @@ import { ProductFilters } from '@/components/ProductFilters';
 import { ProductSearch } from '@/components/ProductSearch';
 import { ProductGrid } from '@/components/ProductGrid';
 import { useAppDispatch, useAppSelector } from '@/hooks';
-import { fetchProducts, setActiveCategory } from '@/store/slices/productsSlice';
+import { fetchProducts, setActiveCategories } from '@/store/slices/productsSlice';
 import { Badge } from '@/components/ui/badge';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { getCategoryBySlug } from '@/services/categoryService';
@@ -16,7 +17,7 @@ const Products = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [categoryNames, setCategoryNames] = useState<Record<string, string>>({});
   const itemsPerPage = 9;
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -29,48 +30,62 @@ const Products = () => {
     error, 
     showOnSale, 
     minDiscountPercentage,
-    activeCategory 
+    activeCategories 
   } = useAppSelector(state => state.products);
 
-  // Get category from URL query parameter
+  // Get categories from URL query parameters
   useEffect(() => {
-    const categoryParam = searchParams.get('category');
-    if (categoryParam && categoryParam !== activeCategory) {
-      // Set active category in Redux store
-      dispatch(setActiveCategory(categoryParam));
+    const categoriesParam = searchParams.get('categories');
+    if (categoriesParam) {
+      const categoryArray = categoriesParam.split(',');
       
-      // Fetch products filtered by this category
-      dispatch(fetchProducts({ 
-        category: categoryParam,
-        showOnSale,
-        minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
-      }));
-      
-      // Get the readable category name for display
-      const fetchCategoryName = async () => {
-        try {
-          const category = await getCategoryBySlug(categoryParam);
-          if (category) {
-            setCategoryName(category.name);
-          } else {
-            // If we can't find the category, at least capitalize the slug
-            setCategoryName(categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1));
+      // Only update if different from current active categories
+      if (JSON.stringify(categoryArray.sort()) !== JSON.stringify([...activeCategories].sort())) {
+        dispatch(setActiveCategories(categoryArray));
+        
+        // Fetch products filtered by these categories
+        dispatch(fetchProducts({ 
+          categories: categoryArray,
+          showOnSale,
+          minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
+        }));
+        
+        // Get the readable category names for display
+        categoryArray.forEach(async (categorySlug) => {
+          try {
+            const category = await getCategoryBySlug(categorySlug);
+            if (category) {
+              setCategoryNames(prev => ({
+                ...prev,
+                [categorySlug]: category.name
+              }));
+            } else {
+              // If we can't find the category, at least capitalize the slug
+              setCategoryNames(prev => ({
+                ...prev,
+                [categorySlug]: categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1)
+              }));
+            }
+          } catch (error) {
+            console.error('Error fetching category name:', error);
+            // Fallback to capitalized slug
+            setCategoryNames(prev => ({
+              ...prev,
+              [categorySlug]: categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1)
+            }));
           }
-        } catch (error) {
-          console.error('Error fetching category name:', error);
-          // Fallback to capitalized slug
-          setCategoryName(categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1));
-        }
-      };
-      
-      fetchCategoryName();
-      console.log('Filtering products by category:', categoryParam);
-    } else if (!categoryParam && !activeCategory) {
+        });
+      }
+    } else if (activeCategories.length > 0) {
+      // If no categories in URL but we have active categories, clear them
+      dispatch(setActiveCategories([]));
+      dispatch(fetchProducts({}));
+      setCategoryNames({});
+    } else if (!categoriesParam && activeCategories.length === 0) {
       // If no category parameter and none is active, fetch all products
       dispatch(fetchProducts({}));
-      setCategoryName(null);
     }
-  }, [dispatch, searchParams, activeCategory, showOnSale, minDiscountPercentage]);
+  }, [dispatch, searchParams, activeCategories, showOnSale, minDiscountPercentage]);
 
   useEffect(() => {
     if (error) {
@@ -96,13 +111,13 @@ const Products = () => {
         <div className="container mx-auto px-6 md:px-12">
           <div className="text-center mb-8 animate-slide-up">
             <h1 className="text-3xl md:text-4xl font-medium tracking-tight mb-3">
-              {categoryName 
-                ? `${categoryName} Products` 
+              {activeCategories.length === 1 
+                ? `${categoryNames[activeCategories[0]] || activeCategories[0].charAt(0).toUpperCase() + activeCategories[0].slice(1)} Products` 
                 : 'Our Collection'}
             </h1>
             <p className="text-primary/80 max-w-2xl mx-auto">
-              {categoryName
-                ? `Browse our selection of ${categoryName.toLowerCase()} products, designed with quality and value in mind.`
+              {activeCategories.length === 1
+                ? `Browse our selection of ${(categoryNames[activeCategories[0]] || activeCategories[0]).toLowerCase()} products, designed with quality and value in mind.`
                 : 'Explore our curated selection of premium products, designed with attention to every detail and crafted with the finest materials.'}
             </p>
           </div>
@@ -117,13 +132,17 @@ const Products = () => {
           </div>
           
           {/* Active filters display */}
-          <div className="flex justify-center mb-6 animate-slide-up gap-2">
-            {activeCategory && (
-              <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
+          <div className="flex justify-center mb-6 animate-slide-up gap-2 flex-wrap">
+            {activeCategories.length > 0 && activeCategories.map(category => (
+              <Badge 
+                key={category} 
+                variant="outline" 
+                className="flex items-center gap-1 px-3 py-1"
+              >
                 <Tag size={14} className="mr-1" />
-                Category: {categoryName || (activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1))}
+                Category: {categoryNames[category] || (category.charAt(0).toUpperCase() + category.slice(1))}
               </Badge>
-            )}
+            ))}
             
             {showOnSale && (
               <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">

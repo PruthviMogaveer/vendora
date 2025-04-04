@@ -71,7 +71,7 @@ export const getDeals = async (): Promise<Product[]> => {
 
 export const getProducts = async (filters?: {
   searchQuery?: string, 
-  category?: string,
+  categories?: string[],
   minPrice?: number,
   maxPrice?: number,
   showOnSale?: boolean,
@@ -84,9 +84,9 @@ export const getProducts = async (filters?: {
     query = query.ilike('name', `%${filters.searchQuery}%`);
   }
   
-  // Apply category filter
-  if (filters?.category) {
-    query = query.eq('category', filters.category);
+  // Apply category filter - if multiple categories, use "in" operator
+  if (filters?.categories && filters.categories.length > 0) {
+    query = query.in('category', filters.categories);
   }
   
   // Apply price range filter

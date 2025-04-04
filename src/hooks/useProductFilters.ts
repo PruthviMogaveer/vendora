@@ -1,6 +1,9 @@
+
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { 
-  setActiveCategory, 
+  addCategory,
+  removeCategory,
+  setActiveCategories,
   setPriceRange, 
   setShowOnSale, 
   setMinDiscountPercentage,
@@ -16,7 +19,7 @@ interface UseProductFiltersProps {
 
 interface FilterOptions {
   searchQuery?: string;
-  category?: string | null;
+  categories?: string[];
   minPrice?: number;
   maxPrice?: number;
   showOnSale?: boolean;
@@ -25,7 +28,7 @@ interface FilterOptions {
 
 export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) => {
   const { 
-    activeCategory, 
+    activeCategories, 
     priceRange, 
     minPrice, 
     maxPrice, 
@@ -37,29 +40,42 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   
-  const handleCategoryChange = (category: string) => {
-    // If clicking the already active category, clear it
-    const newCategory = category === activeCategory ? null : category;
-    dispatch(setActiveCategory(newCategory));
-    setCurrentPage(1);
-    
-    // Update URL query parameter without reloading the page
-    if (newCategory) {
-      // Keep other query parameters but update/add category
-      navigate({ 
-        search: searchQuery 
-          ? `?category=${newCategory}&search=${searchQuery}` 
-          : `?category=${newCategory}` 
-      }, { replace: true });
+  const handleCategoryToggle = (category: string) => {
+    // Check if the category is already active
+    if (activeCategories.includes(category)) {
+      // Remove the category if it exists
+      dispatch(removeCategory(category));
     } else {
-      // Remove category parameter but keep others
-      navigate({ 
-        search: searchQuery ? `?search=${searchQuery}` : ''
-      }, { replace: true });
+      // Add the category if it doesn't exist
+      dispatch(addCategory(category));
     }
     
+    setCurrentPage(1);
+    
+    // Create a new array of categories for the query
+    const updatedCategories = activeCategories.includes(category)
+      ? activeCategories.filter(c => c !== category)
+      : [...activeCategories, category];
+    
+    // Update URL query parameters without reloading
+    const searchParams = new URLSearchParams();
+    
+    // Add search query if it exists
+    if (searchQuery) {
+      searchParams.set('search', searchQuery);
+    }
+    
+    // Add categories if they exist
+    if (updatedCategories.length > 0) {
+      searchParams.set('categories', updatedCategories.join(','));
+    }
+    
+    // Update URL
+    navigate({ search: searchParams.toString() }, { replace: true });
+    
+    // Apply filters with the new category list
     applyFilters({
-      category: newCategory,
+      categories: updatedCategories,
       searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
@@ -76,7 +92,7 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     setCurrentPage(1);
     
     applyFilters({
-      category: activeCategory || undefined,
+      categories: activeCategories.length > 0 ? activeCategories : undefined,
       searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
@@ -90,7 +106,7 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     setCurrentPage(1);
     
     applyFilters({
-      category: activeCategory || undefined,
+      categories: activeCategories.length > 0 ? activeCategories : undefined,
       searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
@@ -104,7 +120,7 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     setCurrentPage(1);
     
     applyFilters({
-      category: activeCategory || undefined,
+      categories: activeCategories.length > 0 ? activeCategories : undefined,
       searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
@@ -121,7 +137,7 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     setCurrentPage(1);
     
     applyFilters({
-      category: activeCategory || undefined,
+      categories: activeCategories.length > 0 ? activeCategories : undefined,
       searchQuery: searchQuery || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
@@ -145,14 +161,14 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
   
   // Utility to check if any filters are active
   const hasActiveFilters = 
-    !!activeCategory || 
+    activeCategories.length > 0 || 
     priceRange[0] > minPrice || 
     priceRange[1] < maxPrice || 
     showOnSale;
   
   return {
     // State
-    activeCategory,
+    activeCategories,
     priceRange,
     minPrice,
     maxPrice,
@@ -162,7 +178,7 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     hasActiveFilters,
     
     // Actions
-    handleCategoryChange,
+    handleCategoryToggle,
     handlePriceRangeChange,
     handlePriceRangeCommit,
     handleSaleToggle,
