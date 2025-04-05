@@ -80,7 +80,7 @@ const productsSlice = createSlice({
     },
     addCategory: (state, action: PayloadAction<string>) => {
       if (!state.activeCategories.includes(action.payload)) {
-        state.activeCategories.push(action.payload);
+        state.activeCategories = [...state.activeCategories, action.payload];
       }
     },
     removeCategory: (state, action: PayloadAction<string>) => {

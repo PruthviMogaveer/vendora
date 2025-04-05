@@ -1,4 +1,3 @@
-
 import { Product } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -86,6 +85,7 @@ export const getProducts = async (filters?: {
   
   // Apply category filter - if multiple categories, use "in" operator
   if (filters?.categories && filters.categories.length > 0) {
+    console.log('Filtering by categories:', filters.categories);
     query = query.in('category', filters.categories);
   }
   
