@@ -8,6 +8,7 @@ import {
   setShowOnSale, 
   setMinDiscountPercentage,
   setSearchQuery,
+  setCurrentPage,
   clearFilters,
   fetchProducts,
   setSortBy,
@@ -16,7 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 interface UseProductFiltersProps {
-  setCurrentPage: (page: number) => void;
+  updateCurrentPage?: (page: number) => void;
 }
 
 interface FilterOptions {
@@ -28,9 +29,11 @@ interface FilterOptions {
   minDiscountPercentage?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
 }
 
-export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) => {
+export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps = {}) => {
   const { 
     activeCategories, 
     priceRange, 
@@ -40,7 +43,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     minDiscountPercentage,
     searchQuery,
     sortBy,
-    sortOrder
+    sortOrder,
+    currentPage,
+    pageSize
   } = useAppSelector(state => state.products);
   
   const dispatch = useAppDispatch();
@@ -56,7 +61,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       dispatch(addCategory(category));
     }
     
-    setCurrentPage(1);
+    // Reset to page 1 when changing filters
+    dispatch(setCurrentPage(1));
+    if (updateCurrentPage) updateCurrentPage(1);
     
     // Create a new array of categories for the query
     const updatedCategories = activeCategories.includes(category)
@@ -88,7 +95,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       showOnSale,
       minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
       sortBy,
-      sortOrder
+      sortOrder,
+      page: 1,
+      pageSize
     });
   };
   
@@ -97,7 +106,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
   };
   
   const handlePriceRangeCommit = () => {
-    setCurrentPage(1);
+    // Reset to page 1 when changing filters
+    dispatch(setCurrentPage(1));
+    if (updateCurrentPage) updateCurrentPage(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -107,13 +118,18 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       showOnSale,
       minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
       sortBy,
-      sortOrder
+      sortOrder,
+      page: 1,
+      pageSize
     });
   };
   
   const handleSaleToggle = (checked: boolean) => {
     dispatch(setShowOnSale(checked));
-    setCurrentPage(1);
+    
+    // Reset to page 1 when changing filters
+    dispatch(setCurrentPage(1));
+    if (updateCurrentPage) updateCurrentPage(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -123,13 +139,18 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       showOnSale: checked,
       minDiscountPercentage: checked ? minDiscountPercentage : undefined,
       sortBy,
-      sortOrder
+      sortOrder,
+      page: 1,
+      pageSize
     });
   };
   
   const handleDiscountChange = (value: number[]) => {
     dispatch(setMinDiscountPercentage(value[0]));
-    setCurrentPage(1);
+    
+    // Reset to page 1 when changing filters
+    dispatch(setCurrentPage(1));
+    if (updateCurrentPage) updateCurrentPage(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -139,7 +160,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       showOnSale: true,
       minDiscountPercentage: value[0],
       sortBy,
-      sortOrder
+      sortOrder,
+      page: 1,
+      pageSize
     });
   };
   
@@ -148,7 +171,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
   };
   
   const handleSearchSubmit = () => {
-    setCurrentPage(1);
+    // Reset to page 1 when searching
+    dispatch(setCurrentPage(1));
+    if (updateCurrentPage) updateCurrentPage(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -158,14 +183,19 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       showOnSale,
       minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
       sortBy,
-      sortOrder
+      sortOrder,
+      page: 1,
+      pageSize
     });
   };
   
   const handleSortChange = (newSortBy: string, newSortOrder: 'asc' | 'desc') => {
     dispatch(setSortBy(newSortBy));
     dispatch(setSortOrder(newSortOrder));
-    setCurrentPage(1);
+    
+    // Reset to page 1 when changing sort
+    dispatch(setCurrentPage(1));
+    if (updateCurrentPage) updateCurrentPage(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -175,17 +205,43 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       showOnSale,
       minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
       sortBy: newSortBy,
-      sortOrder: newSortOrder
+      sortOrder: newSortOrder,
+      page: 1,
+      pageSize
+    });
+  };
+  
+  const handlePageChange = (page: number) => {
+    dispatch(setCurrentPage(page));
+    if (updateCurrentPage) updateCurrentPage(page);
+    
+    applyFilters({
+      categories: activeCategories.length > 0 ? activeCategories : undefined,
+      searchQuery: searchQuery || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale,
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
+      sortBy,
+      sortOrder,
+      page,
+      pageSize
     });
   };
   
   const handleClearFilters = () => {
     dispatch(clearFilters());
-    setCurrentPage(1);
+    
+    // Reset to page 1 when clearing filters
+    dispatch(setCurrentPage(1));
+    if (updateCurrentPage) updateCurrentPage(1);
     
     // Clear URL parameters and fetch all products
     navigate({ search: '' }, { replace: true });
-    dispatch(fetchProducts({}));
+    dispatch(fetchProducts({
+      page: 1,
+      pageSize
+    }));
   };
   
   const applyFilters = (options: FilterOptions) => {
@@ -210,6 +266,8 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     searchQuery,
     sortBy,
     sortOrder,
+    currentPage,
+    pageSize,
     hasActiveFilters,
     
     // Actions
@@ -221,6 +279,7 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     handleSearchChange,
     handleSearchSubmit,
     handleSortChange,
+    handlePageChange,
     handleClearFilters,
     applyFilters
   };

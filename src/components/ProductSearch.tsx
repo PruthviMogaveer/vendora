@@ -8,19 +8,17 @@ import { useProductFilters } from '@/hooks/useProductFilters';
 interface ProductSearchProps {
   isSearching: boolean;
   setIsSearching: (isSearching: boolean) => void;
-  setCurrentPage: (page: number) => void;
 }
 
 export const ProductSearch = ({
   isSearching,
   setIsSearching,
-  setCurrentPage,
 }: ProductSearchProps) => {
   const { 
     searchQuery, 
     handleSearchChange, 
     handleSearchSubmit 
-  } = useProductFilters({ setCurrentPage });
+  } = useProductFilters();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleSearchChange(e.target.value);

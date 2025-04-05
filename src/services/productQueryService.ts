@@ -1,4 +1,3 @@
-
 import { Product } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -69,6 +68,7 @@ export const getDeals = async (): Promise<Product[]> => {
   return data || [];
 };
 
+// Modified function to support backend pagination
 export const getProducts = async (filters?: {
   searchQuery?: string, 
   categories?: string[],
@@ -76,10 +76,15 @@ export const getProducts = async (filters?: {
   maxPrice?: number,
   showOnSale?: boolean,
   minDiscountPercentage?: number,
-  sortBy?: string, // Added sort parameter
-  sortOrder?: 'asc' | 'desc' // Added sort direction parameter
-}): Promise<Product[]> => {
-  let query = supabase.from('products').select('*');
+  sortBy?: string,
+  sortOrder?: 'asc' | 'desc',
+  page?: number,           // Added pagination parameters
+  pageSize?: number        // Added pagination parameters
+}): Promise<{
+  products: Product[],
+  totalCount: number       // Added total count for pagination
+}> => {
+  let query = supabase.from('products').select('*', { count: 'exact' });
   
   // Apply search filter
   if (filters?.searchQuery) {
@@ -104,25 +109,6 @@ export const getProducts = async (filters?: {
   // Apply sale filters
   if (filters?.showOnSale) {
     query = query.not('old_price', 'is', null);
-    
-    // If minimum discount percentage is specified
-    if (filters.minDiscountPercentage && filters.minDiscountPercentage > 0) {
-      // We can't directly filter by discount percentage in the database,
-      // so we'll fetch all on-sale products and filter them in memory
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching products:', error);
-        return [];
-      }
-      
-      // Calculate discount percentage for each product and filter accordingly
-      return (data || []).filter(product => {
-        if (!product.old_price || product.old_price <= product.price) return false;
-        const discountPercentage = Math.round(((product.old_price - product.price) / product.old_price) * 100);
-        return discountPercentage >= filters.minDiscountPercentage;
-      });
-    }
   }
   
   // Apply sorting if specified
@@ -147,14 +133,37 @@ export const getProducts = async (filters?: {
     query = query.order('name', { ascending: true });
   }
   
-  const { data, error } = await query.limit(50);
+  // Calculate pagination values
+  const page = filters?.page || 1;
+  const pageSize = filters?.pageSize || 9;
+  const start = (page - 1) * pageSize;
+  
+  // Apply pagination using range
+  query = query.range(start, start + pageSize - 1);
+  
+  const { data, error, count } = await query;
   
   if (error) {
     console.error('Error fetching products:', error);
-    return [];
+    return { products: [], totalCount: 0 };
   }
   
-  return data || [];
+  // If discount percentage filter is applied and it's a positive number,
+  // we need to filter in memory since we can't do this calculation in the database query
+  let filteredProducts = data || [];
+  
+  if (filters?.showOnSale && filters.minDiscountPercentage && filters.minDiscountPercentage > 0) {
+    filteredProducts = filteredProducts.filter(product => {
+      if (!product.old_price || product.old_price <= product.price) return false;
+      const discountPercentage = Math.round(((product.old_price - product.price) / product.old_price) * 100);
+      return discountPercentage >= filters.minDiscountPercentage;
+    });
+  }
+  
+  return { 
+    products: filteredProducts, 
+    totalCount: count || filteredProducts.length 
+  };
 };
 
 export const getProductById = async (id: string): Promise<Product | null> => {

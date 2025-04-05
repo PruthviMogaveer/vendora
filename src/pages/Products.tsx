@@ -14,9 +14,9 @@ const Products = () => {
     isSearching,
     setIsSearching,
     currentPage,
-    setCurrentPage,
+    updateCurrentPage,
     categoryNames,
-    itemsPerPage
+    totalPages
   } = useProductsPage();
   
   return (
@@ -34,15 +34,14 @@ const Products = () => {
             setShowFilters={setShowFilters}
             isSearching={isSearching}
             setIsSearching={setIsSearching}
-            setCurrentPage={setCurrentPage}
           />
           
           {/* Products Content: Filters and Grid */}
           <ProductsContent 
             showFilters={showFilters}
             currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
+            updateCurrentPage={updateCurrentPage}
+            totalPages={totalPages}
           />
         </div>
       </div>

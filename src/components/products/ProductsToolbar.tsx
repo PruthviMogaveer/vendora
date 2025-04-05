@@ -9,15 +9,13 @@ interface ProductsToolbarProps {
   setShowFilters: (show: boolean) => void;
   isSearching: boolean;
   setIsSearching: (isSearching: boolean) => void;
-  setCurrentPage: (page: number) => void;
 }
 
 export const ProductsToolbar: React.FC<ProductsToolbarProps> = ({ 
   showFilters,
   setShowFilters,
   isSearching,
-  setIsSearching,
-  setCurrentPage
+  setIsSearching
 }) => {
   return (
     <React.Fragment>
@@ -28,12 +26,11 @@ export const ProductsToolbar: React.FC<ProductsToolbarProps> = ({
           <ProductSearch 
             isSearching={isSearching}
             setIsSearching={setIsSearching}
-            setCurrentPage={setCurrentPage}
           />
         </div>
         
         {/* Sorting dropdown */}
-        <ProductSorting setCurrentPage={setCurrentPage} />
+        <ProductSorting />
       </div>
       
       {/* Mobile filter button */}

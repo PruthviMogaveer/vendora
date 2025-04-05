@@ -10,13 +10,9 @@ import {
 import { useAppSelector } from '@/hooks';
 import { useProductFilters } from '@/hooks/useProductFilters';
 
-interface ProductSortingProps {
-  setCurrentPage: (page: number) => void;
-}
-
-export const ProductSorting: React.FC<ProductSortingProps> = ({ setCurrentPage }) => {
+export const ProductSorting: React.FC = () => {
   const { sortBy, sortOrder } = useAppSelector(state => state.products);
-  const { handleSortChange } = useProductFilters({ setCurrentPage });
+  const { handleSortChange } = useProductFilters();
 
   return (
     <div className="flex items-center gap-2">

@@ -8,29 +8,29 @@ import {
   PaginationItem, 
   PaginationLink, 
   PaginationNext, 
-  PaginationPrevious 
+  PaginationPrevious,
+  PaginationEllipsis
 } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppSelector } from '@/hooks';
+import { useProductFilters } from '@/hooks/useProductFilters';
 
 interface ProductGridProps {
   currentProducts: Product[];
   isLoading: boolean;
   currentPage: number;
-  setCurrentPage: (page: number) => void;
+  updateCurrentPage: (page: number) => void;
   totalPages: number;
-  itemsPerPage: number;
 }
 
 export const ProductGrid = ({
   currentProducts,
   isLoading,
   currentPage,
-  setCurrentPage,
+  updateCurrentPage,
   totalPages,
-  itemsPerPage,
 }: ProductGridProps) => {
-  const { products } = useAppSelector(state => state.products);
+  const { handlePageChange } = useProductFilters({ updateCurrentPage });
 
   if (isLoading) {
     return (
@@ -54,6 +54,82 @@ export const ProductGrid = ({
     );
   }
 
+  // Function to render page numbers with ellipses for many pages
+  const renderPageNumbers = () => {
+    const pageItems = [];
+    const maxVisiblePages = 5; // Maximum number of page links to show
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    // First page
+    if (startPage > 1) {
+      pageItems.push(
+        <PaginationItem key="page-1">
+          <PaginationLink 
+            onClick={() => handlePageChange(1)}
+            isActive={currentPage === 1}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+      
+      // Show ellipsis if there's a gap
+      if (startPage > 2) {
+        pageItems.push(
+          <PaginationItem key="ellipsis-1">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+    }
+    
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      pageItems.push(
+        <PaginationItem key={`page-${i}`}>
+          <PaginationLink 
+            onClick={() => handlePageChange(i)}
+            isActive={currentPage === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    // Last page
+    if (endPage < totalPages) {
+      // Show ellipsis if there's a gap
+      if (endPage < totalPages - 1) {
+        pageItems.push(
+          <PaginationItem key="ellipsis-2">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      
+      pageItems.push(
+        <PaginationItem key={`page-${totalPages}`}>
+          <PaginationLink 
+            onClick={() => handlePageChange(totalPages)}
+            isActive={currentPage === totalPages}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    return pageItems;
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -68,34 +144,22 @@ export const ProductGrid = ({
         ))}
       </div>
       
-      {/* Pagination */}
-      {products.length > itemsPerPage && (
+      {/* Enhanced Pagination */}
+      {totalPages > 1 && (
         <div className="mt-12">
           <Pagination>
             <PaginationContent>
               {currentPage > 1 && (
                 <PaginationItem>
-                  <PaginationPrevious onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))} />
+                  <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} />
                 </PaginationItem>
               )}
               
-              {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
-                const pageNumber = i + 1;
-                return (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink 
-                      isActive={currentPage === pageNumber}
-                      onClick={() => setCurrentPage(pageNumber)}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
+              {renderPageNumbers()}
               
               {currentPage < totalPages && (
                 <PaginationItem>
-                  <PaginationNext onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))} />
+                  <PaginationNext onClick={() => handlePageChange(currentPage + 1)} />
                 </PaginationItem>
               )}
             </PaginationContent>

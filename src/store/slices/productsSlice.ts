@@ -18,6 +18,10 @@ interface ProductsState {
   minDiscountPercentage: number;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  pageSize: number;
 }
 
 const initialState: ProductsState = {
@@ -35,6 +39,10 @@ const initialState: ProductsState = {
   minDiscountPercentage: 0,
   sortBy: 'name',
   sortOrder: 'asc',
+  currentPage: 1,
+  totalPages: 1,
+  totalCount: 0,
+  pageSize: 9
 };
 
 // Async thunks for backend operations
@@ -48,7 +56,9 @@ export const fetchProducts = createAsyncThunk(
     showOnSale,
     minDiscountPercentage,
     sortBy,
-    sortOrder
+    sortOrder,
+    page,
+    pageSize
   }: { 
     searchQuery?: string; 
     categories?: string[];
@@ -58,8 +68,11 @@ export const fetchProducts = createAsyncThunk(
     minDiscountPercentage?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    page?: number;
+    pageSize?: number;
   }) => {
     console.log('Fetching products with categories:', categories);
+    console.log('Pagination:', page, pageSize);
     console.log('Sorting by:', sortBy, sortOrder);
     return await getProducts({ 
       searchQuery, 
@@ -69,7 +82,9 @@ export const fetchProducts = createAsyncThunk(
       showOnSale,
       minDiscountPercentage,
       sortBy,
-      sortOrder
+      sortOrder,
+      page,
+      pageSize
     });
   }
 );
@@ -120,6 +135,12 @@ const productsSlice = createSlice({
     setSortOrder: (state, action: PayloadAction<'asc' | 'desc'>) => {
       state.sortOrder = action.payload;
     },
+    setCurrentPage: (state, action: PayloadAction<number>) => {
+      state.currentPage = action.payload;
+    },
+    setPageSize: (state, action: PayloadAction<number>) => {
+      state.pageSize = action.payload;
+    },
     clearFilters: (state) => {
       state.searchQuery = '';
       state.activeCategories = [];
@@ -128,6 +149,7 @@ const productsSlice = createSlice({
       state.minDiscountPercentage = 0;
       state.sortBy = 'name';
       state.sortOrder = 'asc';
+      state.currentPage = 1;
       state.filteredProducts = state.products;
     }
   },
@@ -139,16 +161,18 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.products = action.payload;
-        state.filteredProducts = action.payload;
+        state.products = action.payload.products;
+        state.filteredProducts = action.payload.products;
+        state.totalCount = action.payload.totalCount;
+        state.totalPages = Math.ceil(action.payload.totalCount / state.pageSize);
         
         // Extract unique categories
-        const uniqueCategories = [...new Set(action.payload.map(product => product.category))];
+        const uniqueCategories = [...new Set(action.payload.products.map(product => product.category))];
         state.categories = uniqueCategories;
         
         // Calculate min and max prices for the range slider
-        if (action.payload.length > 0) {
-          const prices = action.payload.map(product => product.price);
+        if (action.payload.products.length > 0) {
+          const prices = action.payload.products.map(product => product.price);
           state.minPrice = Math.floor(Math.min(...prices));
           state.maxPrice = Math.ceil(Math.max(...prices));
           
@@ -179,6 +203,8 @@ export const {
   setMinDiscountPercentage,
   setSortBy,
   setSortOrder,
+  setCurrentPage,
+  setPageSize,
   clearFilters 
 } = productsSlice.actions;
 export default productsSlice.reducer;
