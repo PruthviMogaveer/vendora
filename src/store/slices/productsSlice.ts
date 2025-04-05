@@ -51,6 +51,7 @@ export const fetchProducts = createAsyncThunk(
     showOnSale?: boolean;
     minDiscountPercentage?: number;
   }) => {
+    console.log('Fetching products with categories:', categories);
     return await getProducts({ 
       searchQuery, 
       categories,
