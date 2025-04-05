@@ -83,21 +83,6 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     });
   };
   
-  // New function for handling price range checkboxes
-  const handlePriceRangeSelect = (min: number, max: number) => {
-    dispatch(setPriceRange([min, max]));
-    setCurrentPage(1);
-    
-    applyFilters({
-      categories: activeCategories.length > 0 ? activeCategories : undefined,
-      searchQuery: searchQuery || undefined,
-      minPrice: min,
-      maxPrice: max,
-      showOnSale,
-      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
-    });
-  };
-  
   const handlePriceRangeChange = (value: number[]) => {
     dispatch(setPriceRange([value[0], value[1]]));
   };
@@ -195,7 +180,6 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     handleCategoryToggle,
     handlePriceRangeChange,
     handlePriceRangeCommit,
-    handlePriceRangeSelect, // Add the new function
     handleSaleToggle,
     handleDiscountChange,
     handleSearchChange,
