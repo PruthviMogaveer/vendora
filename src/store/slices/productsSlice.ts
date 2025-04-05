@@ -16,6 +16,8 @@ interface ProductsState {
   maxPrice: number;
   showOnSale: boolean;
   minDiscountPercentage: number;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
 const initialState: ProductsState = {
@@ -31,6 +33,8 @@ const initialState: ProductsState = {
   maxPrice: 1000,
   showOnSale: false,
   minDiscountPercentage: 0,
+  sortBy: 'name',
+  sortOrder: 'asc',
 };
 
 // Async thunks for backend operations
@@ -42,7 +46,9 @@ export const fetchProducts = createAsyncThunk(
     minPrice,
     maxPrice,
     showOnSale,
-    minDiscountPercentage
+    minDiscountPercentage,
+    sortBy,
+    sortOrder
   }: { 
     searchQuery?: string; 
     categories?: string[];
@@ -50,15 +56,20 @@ export const fetchProducts = createAsyncThunk(
     maxPrice?: number;
     showOnSale?: boolean;
     minDiscountPercentage?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
   }) => {
     console.log('Fetching products with categories:', categories);
+    console.log('Sorting by:', sortBy, sortOrder);
     return await getProducts({ 
       searchQuery, 
       categories,
       minPrice,
       maxPrice,
       showOnSale,
-      minDiscountPercentage
+      minDiscountPercentage,
+      sortBy,
+      sortOrder
     });
   }
 );
@@ -103,12 +114,20 @@ const productsSlice = createSlice({
       state.minDiscountPercentage = action.payload;
       // Filtering will be done by fetchProducts
     },
+    setSortBy: (state, action: PayloadAction<string>) => {
+      state.sortBy = action.payload;
+    },
+    setSortOrder: (state, action: PayloadAction<'asc' | 'desc'>) => {
+      state.sortOrder = action.payload;
+    },
     clearFilters: (state) => {
       state.searchQuery = '';
       state.activeCategories = [];
       state.priceRange = [state.minPrice, state.maxPrice];
       state.showOnSale = false;
       state.minDiscountPercentage = 0;
+      state.sortBy = 'name';
+      state.sortOrder = 'asc';
       state.filteredProducts = state.products;
     }
   },
@@ -158,6 +177,8 @@ export const {
   setPriceRange, 
   setShowOnSale,
   setMinDiscountPercentage,
+  setSortBy,
+  setSortOrder,
   clearFilters 
 } = productsSlice.actions;
 export default productsSlice.reducer;

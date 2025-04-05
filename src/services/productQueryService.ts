@@ -1,3 +1,4 @@
+
 import { Product } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -74,7 +75,9 @@ export const getProducts = async (filters?: {
   minPrice?: number,
   maxPrice?: number,
   showOnSale?: boolean,
-  minDiscountPercentage?: number
+  minDiscountPercentage?: number,
+  sortBy?: string, // Added sort parameter
+  sortOrder?: 'asc' | 'desc' // Added sort direction parameter
 }): Promise<Product[]> => {
   let query = supabase.from('products').select('*');
   
@@ -120,6 +123,28 @@ export const getProducts = async (filters?: {
         return discountPercentage >= filters.minDiscountPercentage;
       });
     }
+  }
+  
+  // Apply sorting if specified
+  if (filters?.sortBy) {
+    // Handle different sort options
+    switch (filters.sortBy) {
+      case 'price':
+        query = query.order('price', { ascending: filters.sortOrder === 'asc' });
+        break;
+      case 'name':
+        query = query.order('name', { ascending: filters.sortOrder === 'asc' });
+        break;
+      case 'newest':
+        query = query.order('created_at', { ascending: false });
+        break;
+      default:
+        // Default sort by name ascending
+        query = query.order('name', { ascending: true });
+    }
+  } else {
+    // Default sort if not specified
+    query = query.order('name', { ascending: true });
   }
   
   const { data, error } = await query.limit(50);

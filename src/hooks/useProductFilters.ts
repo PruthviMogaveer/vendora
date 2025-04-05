@@ -1,3 +1,4 @@
+
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { 
   addCategory,
@@ -8,7 +9,9 @@ import {
   setMinDiscountPercentage,
   setSearchQuery,
   clearFilters,
-  fetchProducts
+  fetchProducts,
+  setSortBy,
+  setSortOrder
 } from '@/store/slices/productsSlice';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,6 +26,8 @@ interface FilterOptions {
   maxPrice?: number;
   showOnSale?: boolean;
   minDiscountPercentage?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) => {
@@ -33,7 +38,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     maxPrice, 
     showOnSale,
     minDiscountPercentage,
-    searchQuery
+    searchQuery,
+    sortBy,
+    sortOrder
   } = useAppSelector(state => state.products);
   
   const dispatch = useAppDispatch();
@@ -79,7 +86,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       showOnSale,
-      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
+      sortBy,
+      sortOrder
     });
   };
   
@@ -96,7 +105,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       showOnSale,
-      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
+      sortBy,
+      sortOrder
     });
   };
   
@@ -110,7 +121,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       showOnSale: checked,
-      minDiscountPercentage: checked ? minDiscountPercentage : undefined
+      minDiscountPercentage: checked ? minDiscountPercentage : undefined,
+      sortBy,
+      sortOrder
     });
   };
   
@@ -124,7 +137,9 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       showOnSale: true,
-      minDiscountPercentage: value[0]
+      minDiscountPercentage: value[0],
+      sortBy,
+      sortOrder
     });
   };
   
@@ -141,7 +156,26 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       showOnSale,
-      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
+      sortBy,
+      sortOrder
+    });
+  };
+  
+  const handleSortChange = (newSortBy: string, newSortOrder: 'asc' | 'desc') => {
+    dispatch(setSortBy(newSortBy));
+    dispatch(setSortOrder(newSortOrder));
+    setCurrentPage(1);
+    
+    applyFilters({
+      categories: activeCategories.length > 0 ? activeCategories : undefined,
+      searchQuery: searchQuery || undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      showOnSale,
+      minDiscountPercentage: showOnSale ? minDiscountPercentage : undefined,
+      sortBy: newSortBy,
+      sortOrder: newSortOrder
     });
   };
   
@@ -174,6 +208,8 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     showOnSale,
     minDiscountPercentage,
     searchQuery,
+    sortBy,
+    sortOrder,
     hasActiveFilters,
     
     // Actions
@@ -184,6 +220,7 @@ export const useProductFilters = ({ setCurrentPage }: UseProductFiltersProps) =>
     handleDiscountChange,
     handleSearchChange,
     handleSearchSubmit,
+    handleSortChange,
     handleClearFilters,
     applyFilters
   };

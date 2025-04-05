@@ -12,6 +12,7 @@ import { fetchProducts, setActiveCategories } from '@/store/slices/productsSlice
 import { Badge } from '@/components/ui/badge';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { getCategoryBySlug } from '@/services/categoryService';
+import { ProductSorting } from '@/components/filters/ProductSorting';
 
 const Products = () => {
   const [showFilters, setShowFilters] = useState(false);
@@ -122,13 +123,19 @@ const Products = () => {
             </p>
           </div>
           
-          {/* Search bar */}
-          <div className="max-w-md mx-auto mb-8 animate-slide-up">
-            <ProductSearch 
-              isSearching={isSearching}
-              setIsSearching={setIsSearching}
-              setCurrentPage={setCurrentPage}
-            />
+          {/* Search and Sort Row */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8 animate-slide-up gap-4">
+            {/* Search bar */}
+            <div className="w-full md:w-80">
+              <ProductSearch 
+                isSearching={isSearching}
+                setIsSearching={setIsSearching}
+                setCurrentPage={setCurrentPage}
+              />
+            </div>
+            
+            {/* Sorting dropdown */}
+            <ProductSorting setCurrentPage={setCurrentPage} />
           </div>
           
           {/* Active filters display */}
