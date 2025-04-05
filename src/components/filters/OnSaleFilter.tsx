@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';

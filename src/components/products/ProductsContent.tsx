@@ -27,7 +27,7 @@ export const ProductsContent: React.FC<ProductsContentProps> = ({
           showFilters ? 'block' : 'hidden md:block'
         } w-full md:w-64 flex-shrink-0 animate-slide-up`}
       >
-        <ProductFilters />
+        <ProductFilters setCurrentPage={updateCurrentPage} />
       </div>
       
       {/* Products Grid */}

@@ -1,4 +1,3 @@
-
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { 
   addCategory,
@@ -17,6 +16,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 interface UseProductFiltersProps {
+  setCurrentPage?: (page: number) => void;
   updateCurrentPage?: (page: number) => void;
 }
 
@@ -33,7 +33,7 @@ interface FilterOptions {
   pageSize?: number;
 }
 
-export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps = {}) => {
+export const useProductFilters = ({ setCurrentPage: setPageCallback, updateCurrentPage }: UseProductFiltersProps = {}) => {
   const { 
     activeCategories, 
     priceRange, 
@@ -64,6 +64,7 @@ export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps 
     // Reset to page 1 when changing filters
     dispatch(setCurrentPage(1));
     if (updateCurrentPage) updateCurrentPage(1);
+    if (setPageCallback) setPageCallback(1);
     
     // Create a new array of categories for the query
     const updatedCategories = activeCategories.includes(category)
@@ -109,6 +110,7 @@ export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps 
     // Reset to page 1 when changing filters
     dispatch(setCurrentPage(1));
     if (updateCurrentPage) updateCurrentPage(1);
+    if (setPageCallback) setPageCallback(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -130,6 +132,7 @@ export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps 
     // Reset to page 1 when changing filters
     dispatch(setCurrentPage(1));
     if (updateCurrentPage) updateCurrentPage(1);
+    if (setPageCallback) setPageCallback(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -151,6 +154,7 @@ export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps 
     // Reset to page 1 when changing filters
     dispatch(setCurrentPage(1));
     if (updateCurrentPage) updateCurrentPage(1);
+    if (setPageCallback) setPageCallback(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -174,6 +178,7 @@ export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps 
     // Reset to page 1 when searching
     dispatch(setCurrentPage(1));
     if (updateCurrentPage) updateCurrentPage(1);
+    if (setPageCallback) setPageCallback(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -196,6 +201,7 @@ export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps 
     // Reset to page 1 when changing sort
     dispatch(setCurrentPage(1));
     if (updateCurrentPage) updateCurrentPage(1);
+    if (setPageCallback) setPageCallback(1);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -214,6 +220,7 @@ export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps 
   const handlePageChange = (page: number) => {
     dispatch(setCurrentPage(page));
     if (updateCurrentPage) updateCurrentPage(page);
+    if (setPageCallback) setPageCallback(page);
     
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
@@ -235,6 +242,7 @@ export const useProductFilters = ({ updateCurrentPage }: UseProductFiltersProps 
     // Reset to page 1 when clearing filters
     dispatch(setCurrentPage(1));
     if (updateCurrentPage) updateCurrentPage(1);
+    if (setPageCallback) setPageCallback(1);
     
     // Clear URL parameters and fetch all products
     navigate({ search: '' }, { replace: true });

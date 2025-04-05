@@ -7,26 +7,30 @@ import { CategoryFilter } from '@/components/filters/CategoryFilter';
 import { PriceRangeFilter } from '@/components/filters/PriceRangeFilter';
 import { OnSaleFilter } from '@/components/filters/OnSaleFilter';
 
-export const ProductFilters = () => {
+interface ProductFiltersProps {
+  setCurrentPage?: (page: number) => void;
+}
+
+export const ProductFilters: React.FC<ProductFiltersProps> = ({ setCurrentPage }) => {
   return (
     <Card className="sticky top-24">
       <CardHeader className="p-0">
-        <FilterHeader />
+        <FilterHeader setCurrentPage={setCurrentPage} />
       </CardHeader>
       
       <CardContent className="p-4 space-y-6">
         {/* Categories Accordion */}
-        <CategoryFilter />
+        <CategoryFilter setCurrentPage={setCurrentPage} />
         
         <Separator />
         
         {/* Price Range */}
-        <PriceRangeFilter />
+        <PriceRangeFilter setCurrentPage={setCurrentPage} />
         
         <Separator />
         
         {/* Sale Items */}
-        <OnSaleFilter />
+        <OnSaleFilter setCurrentPage={setCurrentPage} />
       </CardContent>
     </Card>
   );

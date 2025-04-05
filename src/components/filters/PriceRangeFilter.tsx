@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAppSelector } from '@/hooks';
 import { useProductFilters } from '@/hooks/useProductFilters';
@@ -31,7 +30,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({ setCurrentPa
     handlePriceRangeChange([min, max]);
     handlePriceRangeCommit();
   };
-
+  
   return (
     <div>
       <h4 className="font-medium mb-3">Price Range</h4>
