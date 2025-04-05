@@ -17,7 +17,7 @@ const priceRanges = [
 ];
 
 export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({ setCurrentPage }) => {
-  const { priceRange } = useAppSelector(state => state.products);
+  const { priceRange, minPrice, maxPrice } = useAppSelector(state => state.products);
   const { handlePriceRangeChange, handlePriceRangeCommit } = useProductFilters({ setCurrentPage });
 
   // Check if a price range is active
@@ -27,7 +27,15 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({ setCurrentPa
 
   // Handle price range checkbox selection
   const handlePriceRangeSelect = (min: number, max: number) => {
-    handlePriceRangeChange([min, max]);
+    // If this range is already active, deselect it and reset to full range
+    if (isPriceRangeActive(min, max)) {
+      handlePriceRangeChange([minPrice, maxPrice]);
+    } else {
+      // Otherwise select this range
+      handlePriceRangeChange([min, max]);
+    }
+    
+    // Apply the filter
     handlePriceRangeCommit();
   };
   
@@ -40,11 +48,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({ setCurrentPa
             <Checkbox 
               id={`price-range-${range.min}-${range.max}`} 
               checked={isPriceRangeActive(range.min, range.max)}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  handlePriceRangeSelect(range.min, range.max);
-                }
-              }}
+              onCheckedChange={() => handlePriceRangeSelect(range.min, range.max)}
             />
             <Label 
               htmlFor={`price-range-${range.min}-${range.max}`}

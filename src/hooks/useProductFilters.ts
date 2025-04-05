@@ -112,6 +112,9 @@ export const useProductFilters = ({ setCurrentPage: setPageCallback, updateCurre
     if (updateCurrentPage) updateCurrentPage(1);
     if (setPageCallback) setPageCallback(1);
     
+    // Log price range for debugging
+    console.log('Applying price range filter:', priceRange);
+    
     applyFilters({
       categories: activeCategories.length > 0 ? activeCategories : undefined,
       searchQuery: searchQuery || undefined,
